@@ -1,4 +1,18 @@
+import { auth, googleProvider, signInWithPopup } from "../firebase";
+
 function Hero() {
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      console.log("User signed in:", user);
+      // You can add redirect logic or state update here
+    } catch (error) {
+      console.error("Error signing in with Google:", error);
+      alert("Failed to sign in. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-[80vh] py-20 bg-gradient-to-b from-blue-50/50 to-white flex flex-col items-center justify-center gap-8 relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] pointer-events-none"></div>
@@ -11,7 +25,10 @@ function Hero() {
         EchoCare records doctor-patient conversation and converts them into
         structured SOAP notes - ready to review and export
       </h2>
-      <button className="group flex items-center text-lg gap-3 bg-blue-600 px-8 py-3.5 text-white rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+      <button
+        onClick={handleGoogleSignIn}
+        className="group flex items-center text-lg gap-3 bg-blue-600 px-8 py-3.5 text-white rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+      >
         <span className="mt-[0.1rem] group-hover:scale-110 transition-transform">
           <i className="devicon-google-plain"></i>
         </span>
