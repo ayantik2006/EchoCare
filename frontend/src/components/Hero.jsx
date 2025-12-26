@@ -3,6 +3,7 @@ import { auth } from "../../firebase/auth.js";
 import axios from "axios";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const provider = new GoogleAuthProvider();
 
@@ -10,13 +11,15 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Hero() {
   const navigate = useNavigate();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleLogin = async () => {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    const email = user.email;
-    const name = user.displayName;
+    setIsLoggingIn(true);
     try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const email = user.email;
+      const name = user.displayName;
       await axios.post(
         BACKEND_URL + "/auth/login",
         {
@@ -29,6 +32,10 @@ function Hero() {
       );
       navigate("/dashboard");
     } catch (e) {
+      if (e.code === "auth/popup-closed-by-user") {
+        setIsLoggingIn(false);
+        console.log(e);
+      }
       console.log(e);
     }
   };
@@ -51,13 +58,20 @@ function Hero() {
         structured SOAP notes - ready to review and export
       </h2>
       <button
-        className="flex items-center text-[1.1rem] gap-3 bg-[#3570BD] px-6 py-2 text-white rounded-lg hover:opacity-85 cursor-pointer"
+        className={`flex items-center text-[1.1rem] gap-3 bg-[#3570BD] px-6 py-2 text-white rounded-lg hover:opacity-85 cursor-pointer ${
+          isLoggingIn ? "opacity-75 pointer-events-none" : ""
+        }`}
         onClick={handleLogin}
       >
         <span className="mt-[0.1rem]">
-          <i className="devicon-google-plain"></i>
+          {!isLoggingIn && <i className="devicon-google-plain"></i>}
+          {isLoggingIn && (
+            <div className="border-r-4 w-4 h-4 rounded-full animate-spin"></div>
+          )}
         </span>
-        <span className="font-medium">Continue with Google</span>
+        <span className="font-medium">
+          {!isLoggingIn ? "Continue with Google" : "Logging you in..."}
+        </span>
       </button>
     </div>
   );

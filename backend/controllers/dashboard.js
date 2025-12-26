@@ -51,6 +51,7 @@ Rules:
 - If something is unclear, write "Not mentioned".
 - Be concise and structured.
 - Ignore irrelevant conversation.
+- The output should be properly formatted(whitespaces and line gaps)
 
 Format strictly as:
 
