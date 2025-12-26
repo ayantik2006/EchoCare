@@ -1,32 +1,5 @@
 function Features() {
   return (
-<<<<<<< HEAD
-    <div className="flex gap-15 flex-wrap items-center justify-center p-[2rem] px-[2rem]">
-      <div className="flex flex-col items-start gap-2 ">
-        <h1 className="flex gap-3 items-start">
-          <img src="../../mic.png" alt="mic" className="w-[2rem]" />
-          <div className="text-[1.2rem] font-semibold ">Built for Doctors</div>
-        </h1>
-        <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
-          Designed to reduce charting time without changing clinical workflows
-        </p>
-      </div>
-      <div className="flex flex-col items-start gap-2">
-        <h1 className="flex gap-3 items-start">
-          <img src="../../transcription.png" alt="transcription" className="w-[2.5rem]" />
-          <div className="text-[1.2rem] font-semibold ">Accurate Transcription</div>
-        </h1>
-        <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
-          Medical grade text-to-speech with structured summaries
-        </p>
-      </div>
-      <div className="flex flex-col items-start gap-2">
-        <h1 className="flex gap-3 items-start">
-          <img src="../../soap.png" alt="soap" className="w-[2rem]" />
-          <div className="text-[1.2rem] font-semibold ">SOAP-ready Output</div>
-        </h1>
-        <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
-=======
     <div className="flex gap-8 flex-wrap items-stretch justify-center p-8 md:p-12 max-w-7xl mx-auto">
 
       <div className="flex flex-col items-start gap-4 p-8 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 flex-1 min-w-[300px]">
@@ -34,7 +7,7 @@ function Features() {
           <div className="p-3 bg-blue-50 rounded-xl">
             <img src="../../mic.png" alt="mic" className="w-8 h-8 object-contain" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800">Built for Doctors</h2>
+          <h2 className="text-xl font-heading font-bold text-slate-800">Built for Doctors</h2>
         </div>
         <p className="text-slate-600 text-base leading-relaxed font-medium">
           Designed to reduce charting time without changing clinical workflows
@@ -59,7 +32,6 @@ function Features() {
           <h2 className="text-xl font-bold text-slate-800">SOAP-ready Output</h2>
         </div>
         <p className="text-slate-600 text-base leading-relaxed font-medium">
->>>>>>> 5ccd41d7f519b73d8bffc2145373cd7ad713a4d0
           Subjective, Objective, Assesment, Plan - instantly formatted
         </p>
       </div>
