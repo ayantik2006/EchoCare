@@ -7,6 +7,7 @@ const schema = new mongoose.Schema({
   soap: { type: String, default: "" },
   duration: { type: String, default: 0 },
   date: { type: String, default: "" },
+  title: { type: String, default: "" },
 });
 
 export default mongoose.model("Consultation", schema);

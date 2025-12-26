@@ -184,12 +184,32 @@ ${transcript}
       }
     );
     const AITranscript = response.data.choices[0].message.content;
-    await Consultation.updateOne({ _id: id }, { AITranscription: AITranscript });
+    await Consultation.updateOne(
+      { _id: id },
+      { AITranscription: AITranscript }
+    );
     const consultations = await Consultation.find({ email: email });
     return res
       .status(200)
-      .json({ msg: "Transcript AI Enhanced", consultations: [...consultations].reverse(), AITranscript:AITranscript });
+      .json({
+        msg: "Transcript AI Enhanced",
+        consultations: [...consultations].reverse(),
+        AITranscript: AITranscript,
+      });
   } catch (e) {
     console.log(e);
   }
+};
+
+export const editTitle = async (req, res) => {
+  const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
+  const { id, title } = req.body;
+  await Consultation.updateOne({ _id: id }, { title: title });
+  const consultations = await Consultation.find({ email: email });
+  return res
+    .status(200)
+    .json({
+      msg: "title saved",
+      consultations: [...consultations].reverse(),
+    });
 };
