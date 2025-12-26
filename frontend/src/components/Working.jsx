@@ -8,7 +8,7 @@ function Working() {
       description: "Securely capture the doctor patient conversation",
       color: "bg-blue-600",
       shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900"
+      numberColor: "text-blue-900",
     },
     {
       id: 2,
@@ -16,7 +16,7 @@ function Working() {
       description: "Convert speech to text using medical grade accuracy",
       color: "bg-blue-600",
       shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900"
+      numberColor: "text-blue-900",
     },
     {
       id: 3,
@@ -24,7 +24,7 @@ function Working() {
       description: "Format the transcript into a structred SOAP note",
       color: "bg-blue-600",
       shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900"
+      numberColor: "text-blue-900",
     },
     {
       id: 4,
@@ -32,8 +32,8 @@ function Working() {
       description: "Edit if needed, then export to PDF or EHR",
       color: "bg-blue-600",
       shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900"
-    }
+      numberColor: "text-blue-900",
+    },
   ];
 
   // Duplicate steps to create seamless loop
@@ -48,14 +48,23 @@ function Working() {
       </div>
 
       <div className="relative w-full max-w-7xl mx-auto overflow-hidden p-8 br-[50px]">
-
         {/* Left Blur Overlay */}
-        <div className="absolute top-0 left-0 h-full w-24 md:w-48 z-20 pointer-events-none backdrop-blur-[2px]"
-          style={{ maskImage: "linear-gradient(to right, black, transparent)", WebkitMaskImage: "linear-gradient(to right, black, transparent)" }}></div>
+        <div
+          className="absolute top-0 left-0 h-full w-24 md:w-48 z-20 pointer-events-none backdrop-blur-[2px]"
+          style={{
+            maskImage: "linear-gradient(to right, black, transparent)",
+            WebkitMaskImage: "linear-gradient(to right, black, transparent)",
+          }}
+        ></div>
 
         {/* Right Blur Overlay */}
-        <div className="absolute top-0 right-0 h-full w-24 md:w-48 z-20 pointer-events-none backdrop-blur-[2px]"
-          style={{ maskImage: "linear-gradient(to left, black, transparent)", WebkitMaskImage: "linear-gradient(to left, black, transparent)" }}></div>
+        <div
+          className="absolute top-0 right-0 h-full w-24 md:w-48 z-20 pointer-events-none backdrop-blur-[2px]"
+          style={{
+            maskImage: "linear-gradient(to left, black, transparent)",
+            WebkitMaskImage: "linear-gradient(to left, black, transparent)",
+          }}
+        ></div>
 
         <div className="flex animate-scroll w-max gap-8 px-4 br-[50px]">
           {seamlessSteps.map((step, index) => (
@@ -74,50 +83,15 @@ function Working() {
                 >
                   {step.id}
                 </div>
-                <h2 className="text-xl font-bold text-slate-800">{step.title}</h2>
+                <h2 className="text-xl font-bold text-slate-800">
+                  {step.title}
+                </h2>
               </div>
               <p className="text-slate-600 text-base leading-relaxed font-medium relative z-10 pl-14">
                 {step.description}
               </p>
             </div>
-<<<<<<< HEAD
-            <div className="text-[1.2rem] font-semibold ">Record</div>
-          </h1>
-          <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
-            Securely capture the doctor patient conversation
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2">
-          <h1 className="flex gap-3 items-start">
-            <div className="bg-[#A5C1E7] text-white w-[2rem] h-[2rem] rounded-full flex items-center justify-center text-[1.3rem]">2</div>
-            <div className="text-[1.2rem] font-semibold ">
-              Transcribe
-            </div>
-          </h1>
-          <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
-            Convert speech to text using medical grade accuracy
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2">
-          <h1 className="flex gap-3 items-start">
-            <div className="bg-[#A5C1E7] text-white w-[2rem] h-[2rem] rounded-full flex items-center justify-center text-[1.3rem]">3</div>
-            <div className="text-[1.2rem] font-semibold ">SOAP-ready Output</div>
-          </h1>
-          <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
-            Format the transcript into a structred SOAP note
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2">
-          <h1 className="flex gap-3 items-start">
-            <div className="bg-[#A5C1E7] text-white w-[2rem] h-[2rem] rounded-full flex items-center justify-center text-[1.3rem]">4</div>
-            <div className="text-[1.2rem] font-semibold ">Export</div>
-          </h1>
-          <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
-            Edit if needed, then export to PDF or EHR
-          </p>
-=======
           ))}
->>>>>>> 5ccd41d7f519b73d8bffc2145373cd7ad713a4d0
         </div>
       </div>
     </div>
