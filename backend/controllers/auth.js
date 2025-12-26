@@ -57,5 +57,5 @@ export const signout = async (req, res) => {
 };
 
 export const health=(req,res)=>{
-  res.status(200).json({msg:"running"};)
+  res.status(200).json({msg:"running"});
 }
