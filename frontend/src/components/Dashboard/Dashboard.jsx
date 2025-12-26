@@ -247,6 +247,7 @@ function Dashboard() {
               {AITranscriptShowValue === "" ? "AI Enhance" : "Re-Enhance"}
             </div>
           </h1>
+          <p className="items-start w-full text-neutral-500 italic">(This transcript is auto-generated from speech and may contain inaccuracies)</p>
           {AITranscriptShowValue!=="" && <div className="self-start flex items-center gap-2 bg-blue-200 px-2 py-1 rounded-lg font-semibold">
             <input
               type="checkbox"
@@ -260,7 +261,7 @@ function Dashboard() {
               Show AI Version
             </label>
           </div>}
-          <pre className="text-[1.1rem] font-sans whitespace-pre-wrap mt-5">{!isAITranscriptVisible?transcriptShowValue:AITranscriptShowValue}</pre>
+          <pre className="text-[1.1rem] font-sans whitespace-pre-wrap mt-5 pb-10">{!isAITranscriptVisible?transcriptShowValue:AITranscriptShowValue}</pre>
         </div>
       )}
 
