@@ -10,7 +10,7 @@ function Working() {
             <div className="bg-[#A5C1E7] text-white w-[2rem] h-[2rem] rounded-full flex items-center justify-center text-[1.3rem]">
               1
             </div>
-            <h2 className="text-[1.2rem] font-semibold ">Record</h2>
+            <div className="text-[1.2rem] font-semibold ">Record</div>
           </h1>
           <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
             Securely capture the doctor patient conversation
@@ -19,9 +19,9 @@ function Working() {
         <div className="flex flex-col items-start gap-2">
           <h1 className="flex gap-3 items-start">
             <div className="bg-[#A5C1E7] text-white w-[2rem] h-[2rem] rounded-full flex items-center justify-center text-[1.3rem]">2</div>
-            <h2 className="text-[1.2rem] font-semibold ">
+            <div className="text-[1.2rem] font-semibold ">
               Transcribe
-            </h2>
+            </div>
           </h1>
           <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
             Convert speech to text using medical grade accuracy
@@ -30,7 +30,7 @@ function Working() {
         <div className="flex flex-col items-start gap-2">
           <h1 className="flex gap-3 items-start">
             <div className="bg-[#A5C1E7] text-white w-[2rem] h-[2rem] rounded-full flex items-center justify-center text-[1.3rem]">3</div>
-            <h2 className="text-[1.2rem] font-semibold ">SOAP-ready Output</h2>
+            <div className="text-[1.2rem] font-semibold ">SOAP-ready Output</div>
           </h1>
           <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
             Format the transcript into a structred SOAP note
@@ -39,7 +39,7 @@ function Working() {
         <div className="flex flex-col items-start gap-2">
           <h1 className="flex gap-3 items-start">
             <div className="bg-[#A5C1E7] text-white w-[2rem] h-[2rem] rounded-full flex items-center justify-center text-[1.3rem]">4</div>
-            <h2 className="text-[1.2rem] font-semibold ">Export</h2>
+            <div className="text-[1.2rem] font-semibold ">Export</div>
           </h1>
           <p className="max-w-[17rem] text-[1rem] ml-10 text-neutral-600 font-semibold [@media(max-width:461px)]:w-full">
             Edit if needed, then export to PDF or EHR
