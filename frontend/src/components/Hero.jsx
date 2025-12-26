@@ -4,6 +4,8 @@ import axios from "axios";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 const provider = new GoogleAuthProvider();
 
@@ -18,13 +20,11 @@ function Hero() {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const email = user.email;
-      const name = user.displayName;
+      const idToken = await user.getIdToken();
       await axios.post(
         BACKEND_URL + "/auth/login",
         {
-          email: email,
-          name: name,
+          idToken:idToken
         },
         {
           withCredentials: true,
@@ -34,14 +34,17 @@ function Hero() {
     } catch (e) {
       if (e.code === "auth/popup-closed-by-user") {
         setIsLoggingIn(false);
+      }
+      else{
+        toast.error("Some error occurred! Please try again later");
         console.log(e);
       }
-      console.log(e);
     }
   };
 
   return (
     <div className="min-h-[80vh] py-20 bg-gradient-to-b from-blue-50/50 to-white flex flex-col items-center justify-center gap-8 relative overflow-hidden">
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] pointer-events-none"></div>
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mx-5 mt-3 leading-tight tracking-tight">
         <span className="text-slate-800">AI-powered clinical notes. </span>

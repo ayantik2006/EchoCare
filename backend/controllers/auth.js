@@ -1,5 +1,6 @@
 import Account from "../models/Account.js";
 import jwt from "jsonwebtoken";
+import admin from "../firebaseAdmin.js";
 
 const createCookie = async (res, token) => {
   const isProduction = !(process.env.FRONTEND_URL === "http://localhost:5173");
@@ -21,22 +22,31 @@ const deleteCookie = async (res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, name } = req.body;
-  const userData = await Account.findOne({ email: email });
-  if (userData !== null) {
+  try {
+    const { idToken } = req.body;
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const email = decoded.email;
+    const name = decoded.name;
+
+    const userData = await Account.findOne({ email: email });
+    if (userData !== null) {
+      const token = jwt.sign({ user: email }, process.env.JWT_SECRET, {
+        expiresIn: "15d",
+      });
+      createCookie(res, token);
+      return res.status(200).json({ msg: "login success" });
+    }
+
+    await Account.create({ email: email, name: name });
     const token = jwt.sign({ user: email }, process.env.JWT_SECRET, {
       expiresIn: "15d",
     });
     createCookie(res, token);
-    return res.status(200).json({ msg: "login success" });
+    return res.status(200).json({ msg: "account created and login success" });
+  } catch (e) {
+    console.log(e);
+    return res.status(401).json({ msg: "login error" });
   }
-
-  await Account.create({ email: email, name: name });
-  const token = jwt.sign({ user: email }, process.env.JWT_SECRET, {
-    expiresIn: "15d",
-  });
-  createCookie(res, token);
-  return res.status(200).json({ msg: "account created and login success" });
 };
 
 export const checkLogin = async (req, res) => {
@@ -45,7 +55,7 @@ export const checkLogin = async (req, res) => {
   }
   const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
   const userData = await Account.findOne({ email: email });
-  return res.status(200).json({ msg: "authorized", docName:userData.name });
+  return res.status(200).json({ msg: "authorized", docName: userData.name });
 };
 
 export const signout = async (req, res) => {
@@ -56,6 +66,6 @@ export const signout = async (req, res) => {
   return res.status(200).json({ msg: "logged out" });
 };
 
-export const health=(req,res)=>{
-  res.status(200).json({msg:"running"});
-}
+export const health = (req, res) => {
+  res.status(200).json({ msg: "running" });
+};

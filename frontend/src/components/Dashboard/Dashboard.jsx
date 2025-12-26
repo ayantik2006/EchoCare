@@ -245,7 +245,7 @@ function Dashboard() {
         )}
       </div>
       {isTranscriptVisible && (
-        <div className="w-full h-full z-80 absolute bg-white flex flex-col items-center p-10 gap-3">
+        <div className="w-full min-h-full z-80 absolute bg-white flex flex-col items-center p-10 gap-3">
           <div
             className="ml-auto cursor-pointer"
             onClick={() => {
