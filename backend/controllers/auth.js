@@ -55,3 +55,7 @@ export const signout = async (req, res) => {
   deleteCookie(res);
   return res.status(200).json({ msg: "logged out" });
 };
+
+export const health=(req,res)=>{
+  res.status(200).json({msg:"running"};)
+}
