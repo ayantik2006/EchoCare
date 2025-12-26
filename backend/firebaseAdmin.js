@@ -1,17 +1,21 @@
 import admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Safety check (helps a LOT in deployment)
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT env variable not set");
+}
 
 const serviceAccount = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "firebaseAdminKey.json"), "utf8")
+  process.env.FIREBASE_SERVICE_ACCOUNT
 );
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// Prevent re-initialization in dev / hot reload
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 export default admin;
