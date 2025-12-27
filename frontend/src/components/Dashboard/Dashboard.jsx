@@ -201,7 +201,11 @@ function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(BACKEND_URL + "/auth/signout", {}, { withCredentials: true });
+      await axios.post(
+        BACKEND_URL + "/auth/signout",
+        {},
+        { withCredentials: true }
+      );
       navigate("/");
       toast.success("Logged out successfully");
     } catch (error) {
@@ -229,8 +233,8 @@ function Dashboard() {
             Dashboard
           </h1>
           <div className="flex items-center gap-4">
-             {/* Mobile Menu Button */}
-            <button 
+            {/* Mobile Menu Button */}
+            <button
               className="lg:hidden p-2 bg-white rounded-full text-[#192E46] shadow-sm"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
@@ -240,39 +244,47 @@ function Dashboard() {
               {docName ? docName.charAt(0).toUpperCase() : "?"}
             </div>
           </div>
-        
+
           {/* Mobile Menu Dropdown */}
           {isMobileMenuOpen && (
-             <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 lg:hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-               <button
-                 onClick={() => {
-                   setActiveTab('dashboard');
-                   setIsMobileMenuOpen(false);
-                 }}
-                 className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === 'dashboard' ? 'text-[#2E5674] font-bold bg-blue-50/50' : 'text-gray-600'}`}
-               >
-                 <LayoutGrid size={18} />
-                 Dashboard
-               </button>
-               <button
-                 onClick={() => {
-                   setActiveTab('calendar');
-                   setIsMobileMenuOpen(false);
-                 }}
-                 className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === 'calendar' ? 'text-[#2E5674] font-bold bg-blue-50/50' : 'text-gray-600'}`}
-               >
-                 <Calendar size={18} />
-                 Calendar
-               </button>
-               <div className="h-px bg-gray-100 my-1"></div>
-               <button
-                 onClick={handleLogout}
-                 className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 text-left"
-               >
-                 <LogOut size={18} />
-                 Sign Out
-               </button>
-             </div>
+            <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 lg:hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+              <button
+                onClick={() => {
+                  setActiveTab("dashboard");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
+                  activeTab === "dashboard"
+                    ? "text-[#2E5674] font-bold bg-blue-50/50"
+                    : "text-gray-600"
+                }`}
+              >
+                <LayoutGrid size={18} />
+                Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("calendar");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
+                  activeTab === "calendar"
+                    ? "text-[#2E5674] font-bold bg-blue-50/50"
+                    : "text-gray-600"
+                }`}
+              >
+                <Calendar size={18} />
+                Calendar
+              </button>
+              <div className="h-px bg-gray-100 my-1"></div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 text-left"
+              >
+                <LogOut size={18} />
+                Sign Out
+              </button>
+            </div>
           )}
         </div>
 
@@ -306,7 +318,7 @@ function Dashboard() {
                   )}
                 </div>
                 <div className="flex flex-col text-white whitespace-nowrap">
-                  <h2 className="text-xl font-bold">
+                  <h2 className="text-xl [@media(max-width:413px)]:text-[1rem] font-bold">
                     {isRecording ? "Listening..." : "Start New Consultation"}
                   </h2>
                   {isRecording && (
@@ -363,94 +375,102 @@ function Dashboard() {
             {/* Scrollable Consultation List */}
             <div className="flex-grow overflow-y-auto pr-2 pb-10">
               <div className="flex flex-col gap-4">
-                {consultations.filter(c => 
-                  (c.title || "").toLowerCase().includes(searchQuery.toLowerCase())
+                {consultations.filter((c) =>
+                  (c.title || "")
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
                 ).length === 0 && (
                   <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
-                    {searchQuery ? "No matching consultations found." : "No recent consultations found."}
+                    {searchQuery
+                      ? "No matching consultations found."
+                      : "No recent consultations found."}
                   </div>
                 )}
                 {consultations
-                  .filter(c => (c.title || "").toLowerCase().includes(searchQuery.toLowerCase()))
+                  .filter((c) =>
+                    (c.title || "")
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase())
+                  )
                   .map((consultation, index) => (
-                  <div
-                    key={index}
-                    className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${getCardColor(
-                      index
-                    )} relative group`}
-                  >
-                    <div className="absolute top-4 right-4 z-10">
-                      <button
-                        onClick={(e) =>
-                          handleDeleteConsultation(consultation._id, e)
-                        }
-                        className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${
-                          index % 3 === 0
-                            ? "text-red-600"
-                            : "text-red-200 hover:text-red-100"
-                        }`}
-                        title="Delete Consultation"
-                        disabled={isDeleting}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between mb-1">
-                      <h3
-                        className={`font-semibold text-lg ${getTextColor(
-                          index
-                        )} flex items-center gap-2`}
-                      >
-                        {consultation.title || `Title_${consultation.date}`}
-                        <Pencil
-                          size={14}
-                          className={`cursor-pointer opacity-70 hover:opacity-100`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsEditTitleDialogOpen(true);
-                            setTitleEditId(consultation._id);
-                            setDefaultTitleValue(consultation.title);
+                    <div
+                      key={index}
+                      className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${getCardColor(
+                        index
+                      )} relative group`}
+                    >
+                      <div className="absolute top-4 right-4 z-10">
+                        <button
+                          onClick={(e) =>
+                            handleDeleteConsultation(consultation._id, e)
+                          }
+                          className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${
+                            index % 3 === 0
+                              ? "text-red-600"
+                              : "text-red-200 hover:text-red-100"
+                          }`}
+                          title="Delete Consultation"
+                          disabled={isDeleting}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between mb-1">
+                        <h3
+                          className={`font-semibold text-lg ${getTextColor(
+                            index
+                          )} flex items-center gap-2`}
+                        >
+                          {consultation.title || `Title_${consultation.date}`}
+                          <Pencil
+                            size={14}
+                            className={`cursor-pointer opacity-70 hover:opacity-100`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsEditTitleDialogOpen(true);
+                              setTitleEditId(consultation._id);
+                              setDefaultTitleValue(consultation.title);
+                            }}
+                          />
+                        </h3>
+                      </div>
+                      <div className={`text-sm mb-4 ${getSubTextColor(index)}`}>
+                        Date: {consultation.date} | Duration:{" "}
+                        {consultation.duration}
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          className="bg-white/90 hover:bg-white text-[#192E46] px-5 py-1.5 rounded-full text-sm font-medium transition-colors shadow-sm"
+                          onClick={() => {
+                            setIsSoapVisible(true);
+                            setSoapShowValue(consultation.soap);
+                            setConsultationId(consultation._id);
                           }}
-                        />
-                      </h3>
+                        >
+                          Get SOAP
+                        </button>
+                        <button
+                          className={`bg-transparent border ${
+                            index % 3 !== 0
+                              ? "border-white/50 text-white hover:bg-white/10"
+                              : "border-[#192E46]/30 text-[#192E46] hover:bg-black/5"
+                          } px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
+                          onClick={() => {
+                            setIsTranscriptVisible(true);
+                            setTranscriptShowValue(consultation.transcription);
+                            setAITranscriptShowValue(
+                              consultation.AITranscription
+                            );
+                            setConsultationId(consultation._id);
+                            setIsAIEnhancing(false);
+                            setIsAITranscriptVisible(false);
+                          }}
+                        >
+                          Transcript
+                        </button>
+                      </div>
                     </div>
-                    <div className={`text-sm mb-4 ${getSubTextColor(index)}`}>
-                      Date: {consultation.date} | Duration:{" "}
-                      {consultation.duration}
-                    </div>
-                    <div className="flex gap-3">
-                      <button
-                        className="bg-white/90 hover:bg-white text-[#192E46] px-5 py-1.5 rounded-full text-sm font-medium transition-colors shadow-sm"
-                        onClick={() => {
-                          setIsSoapVisible(true);
-                          setSoapShowValue(consultation.soap);
-                          setConsultationId(consultation._id);
-                        }}
-                      >
-                        Get SOAP
-                      </button>
-                      <button
-                        className={`bg-transparent border ${
-                          index % 3 !== 0
-                            ? "border-white/50 text-white hover:bg-white/10"
-                            : "border-[#192E46]/30 text-[#192E46] hover:bg-black/5"
-                        } px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
-                        onClick={() => {
-                          setIsTranscriptVisible(true);
-                          setTranscriptShowValue(consultation.transcription);
-                          setAITranscriptShowValue(
-                            consultation.AITranscription
-                          );
-                          setConsultationId(consultation._id);
-                          setIsAIEnhancing(false);
-                          setIsAITranscriptVisible(false);
-                        }}
-                      >
-                        Transcript
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>
@@ -487,7 +507,7 @@ function Dashboard() {
               <X size={24} className="text-gray-500" />
             </button>
 
-            <div className="flex items-center justify-between mb-2 pr-12">
+            <div className="flex flex-wrap gap-2 items-center justify-between mb-2 pr-12">
               <h2 className="text-2xl font-bold text-[#192E46]">Transcript</h2>
               <button
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
@@ -569,14 +589,8 @@ function Dashboard() {
               <X size={24} className="text-gray-500" />
             </button>
 
-            <div className="flex items-center justify-between mb-6 pr-12">
-              <div>
-                <h2 className="text-2xl font-bold text-[#192E46]">SOAP Note</h2>
-                <p className="text-gray-400 text-sm italic mt-1">
-                  (Generated by EchoCare AI · Requires clinician review)
-                </p>
-              </div>
-              <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2 items-center justify-between mb-6 pr-12">
+              <div className="flex flex-wrap gap-3">
                 <button
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${
                     isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
@@ -659,6 +673,14 @@ function Dashboard() {
                 suppressContentEditableWarning
                 ref={soapContentRef}
               >
+                <div>
+                  <h2 className="text-2xl font-bold text-[#192E46]">
+                    SOAP Note
+                  </h2>
+                  <p className="text-[#A0A8B5] text-sm italic mt-1 mb-5">
+                    (Generated by EchoCare AI · Requires clinician review)
+                  </p>
+                </div>
                 {soapShowValue}
               </pre>
             </div>
@@ -744,7 +766,8 @@ function Dashboard() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this consultation? This action cannot be undone.
+            Are you sure you want to delete this consultation? This action
+            cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions className="px-6 pb-4">
