@@ -2,6 +2,7 @@ import LandingNavbar from "./LandingNavbar";
 import Hero from "./Hero";
 import Features from "./Features";
 import Working from "./Working";
+import Security from "./Security";
 import Footer from "./Footer";
 import { useEffect } from "react";
 import axios from "axios";
@@ -30,6 +31,7 @@ function Landing() {
       <Hero />
       <Features />
       <Working />
+      <Security />
       <Footer />
     </div>
   );

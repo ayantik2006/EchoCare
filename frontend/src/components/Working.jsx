@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Mic, FileText, Sparkles, FileStack, Stethoscope, Activity, FileAudio } from "lucide-react";
+import { Mic, FileText, Sparkles, FileStack, Stethoscope, Activity, FileAudio, FileCheck } from "lucide-react";
 
 function Working() {
   // --- Carousel Data ---
@@ -373,6 +373,81 @@ function Working() {
 
       </div>
 
+      {/* --- DEMO SECTION (SOAP & RECORDING) --- */}
+      <div className="max-w-6xl mx-auto px-6 mt-32 mb-20">
+        <div className="bg-white/50 backdrop-blur-xl rounded-[3rem] p-8 md:p-12 border border-[#DBC6AE]/30 relative overflow-hidden">
+          {/* Background Blob */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#2E5674]/5 to-[#DBC6AE]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
+
+            {/* Visual Side (Mockups) */}
+            <div className="relative">
+              {/* 1. Main Window: SOAP Note */}
+              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 md:p-8 relative z-10">
+                <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+                  <div className="w-10 h-10 rounded-full bg-[#F0F7FF] flex items-center justify-center text-[#2E5674]">
+                    <FileText size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#192E46]">Generated SOAP Note</h3>
+                    <p className="text-xs text-gray-400">Just now</p>
+                  </div>
+                </div>
+                <div className="space-y-4 font-medium text-sm md:text-base leading-relaxed text-[#192E46]/90">
+                  <div>
+                    <span className="text-[#2E5674] font-bold">S:</span> Middle-aged man reports gradual blurring of vision and difficulty reading small text for the past few months. No eye pain or redness.
+                  </div>
+                  <div>
+                    <span className="text-[#2E5674] font-bold">O:</span> Vitals stable; reduced near vision noted; pupils reactive; no visible eye infection.
+                  </div>
+                  <div>
+                    <span className="text-[#2E5674] font-bold">A:</span> Likely age-related vision change (presbyopia); rule out refractive error.
+                  </div>
+                  <div className="p-3 bg-[#FDFBF7] rounded-xl border border-[#DBC6AE]/20">
+                    <span className="text-[#2E5674] font-bold">P:</span> Recommend eye examination, prescribe corrective lenses if needed, advise regular eye checkups.
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Floating Element: Recording (Animated) */}
+              <div className="absolute -top-6 -left-4 md:-left-8 bg-[#192E46] text-white px-5 py-3 rounded-full shadow-lg flex items-center gap-3 animate-bounce-slow z-20">
+                <div className="relative w-3 h-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </div>
+                <span className="font-semibold text-sm tracking-wide">Recording... 04:12</span>
+              </div>
+
+              {/* 3. Floating Element: Transcript (Animated) */}
+              <div className="absolute -bottom-6 -right-4 md:-right-8 bg-white/90 backdrop-blur-md border border-[#2E5674]/20 p-4 rounded-2xl shadow-lg max-w-[240px] z-30 hidden md:block animate-pulse-slow">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={16} className="text-[#DBC6AE]" />
+                  <span className="text-xs font-bold text-[#2E5674] uppercase tracking-wider">AI Transcribing</span>
+                </div>
+                <p className="text-xs text-gray-600 italic">"Patient mentions difficulty reading..."</p>
+              </div>
+            </div>
+
+            {/* Text Side */}
+            <div className="space-y-6">
+              <VoiceToTextGraphics />
+              <h2 className="text-3xl md:text-4xl font-extrabold text-[#192E46] leading-tight">
+                From Conversation to <span className="text-[#2E5674]">Clinical Record</span> in Seconds.
+              </h2>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Watch as EchoCare captures the consultation in real-time and instantly structures it into a comprehensive SOAP note.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Badge icon={<Mic size={14} />} text="Voice Recognition" />
+                <Badge icon={<Activity size={14} />} text="Context Aware" />
+                <Badge icon={<FileCheck size={14} />} text="Instant Format" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* --- STATISTICS SECTION --- */}
       <div className="max-w-6xl mx-auto px-6 mt-32 mb-20">
         <div className="grid md:grid-cols-2 gap-8">
@@ -404,19 +479,20 @@ function StatCard({ number, suffix, label, desc }) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-        }
+        setHasAnimated(entries[0].isIntersecting);
       },
       { threshold: 0.5 }
     );
 
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [hasAnimated]);
+  }, []);
 
   useEffect(() => {
-    if (!hasAnimated) return;
+    if (!hasAnimated) {
+      setCount(0);
+      return;
+    }
 
     let start = 0;
     // Animation duration 2s
@@ -457,6 +533,51 @@ function StatCard({ number, suffix, label, desc }) {
       <p className="text-gray-500 font-medium leading-relaxed max-w-sm">
         {desc}
       </p>
+    </div>
+  );
+}
+
+function Badge({ icon, text }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white text-[#192E46] border border-[#192E46]/10 shadow-sm cursor-default hover:bg-[#F9FcfE] transition-colors">
+      {icon}
+      {text}
+    </span>
+  );
+}
+
+function VoiceToTextGraphics() {
+  return (
+    <div className="flex items-center gap-4 mb-4 select-none">
+      {/* Animated Voice Waves */}
+      <div className="flex items-center gap-1 h-8">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className="w-1.5 bg-[#2E5674] rounded-full animate-bounce-custom"
+            style={{
+              height: '40%',
+              animationDelay: `${i * 0.1}s`,
+              animationDuration: '1s'
+            }}
+          ></div>
+        ))}
+      </div>
+
+      {/* Arrow */}
+      <div className="text-[#DBC6AE]">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14" />
+          <path d="M12 5l7 7-7 7" />
+        </svg>
+      </div>
+
+      {/* Animated Text Lines */}
+      <div className="flex flex-col gap-1.5 justify-center h-8 w-12">
+        <div className="h-1 bg-[#192E46] rounded-full w-full animate-pulse"></div>
+        <div className="h-1 bg-[#192E46] rounded-full w-[80%] animate-pulse delay-75"></div>
+        <div className="h-1 bg-[#192E46] rounded-full w-[90%] animate-pulse delay-150"></div>
+      </div>
     </div>
   );
 }

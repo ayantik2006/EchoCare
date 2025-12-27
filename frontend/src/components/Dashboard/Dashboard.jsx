@@ -215,7 +215,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex w-full min-h-screen bg-[#F0EBE0] font-sans">
+    <div className="flex w-full min-h-screen bg-[#FDFBF7] font-sans">
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* Sidebar */}
@@ -253,11 +253,10 @@ function Dashboard() {
                   setActiveTab("dashboard");
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
-                  activeTab === "dashboard"
-                    ? "text-[#2E5674] font-bold bg-blue-50/50"
-                    : "text-gray-600"
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === "dashboard"
+                  ? "text-[#2E5674] font-bold bg-blue-50/50"
+                  : "text-gray-600"
+                  }`}
               >
                 <LayoutGrid size={18} />
                 Dashboard
@@ -267,11 +266,10 @@ function Dashboard() {
                   setActiveTab("calendar");
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
-                  activeTab === "calendar"
-                    ? "text-[#2E5674] font-bold bg-blue-50/50"
-                    : "text-gray-600"
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === "calendar"
+                  ? "text-[#2E5674] font-bold bg-blue-50/50"
+                  : "text-gray-600"
+                  }`}
               >
                 <Calendar size={18} />
                 Calendar
@@ -291,23 +289,21 @@ function Dashboard() {
         <div className="flex gap-8 lg:flex-row flex-col flex-grow overflow-hidden relative">
           {/* Left Column: Banner, Transcript, Consultations */}
           <div
-            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
-              activeTab === "dashboard"
-                ? "lg:w-[65%] opacity-100 translate-x-0"
-                : activeTab === "sessions"
+            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === "dashboard"
+              ? "lg:w-[65%] opacity-100 translate-x-0"
+              : activeTab === "sessions"
                 ? "w-full opacity-100 translate-x-0"
                 : "w-0 opacity-0 -translate-x-[100%] overflow-hidden"
-            }`}
+              }`}
           >
             {/* Fixed Top Section */}
             <div className="shrink-0">
               {/* Start Consultation Banner - Collapses in Sessions mode */}
               <div
-                className={`w-full bg-[#2E5674] rounded-3xl flex items-center gap-4 shadow-md transition-all duration-500 ease-in-out hover:shadow-lg cursor-pointer shrink-0 overflow-hidden ${
-                  activeTab === "sessions"
-                    ? "h-0 p-0 mb-0 opacity-0"
-                    : "p-4 mb-4 h-auto opacity-100"
-                }`}
+                className={`w-full bg-[#2E5674] rounded-3xl flex items-center gap-4 shadow-md transition-all duration-500 ease-in-out hover:shadow-lg cursor-pointer shrink-0 overflow-hidden ${activeTab === "sessions"
+                  ? "h-0 p-0 mb-0 opacity-0"
+                  : "p-4 mb-4 h-auto opacity-100"
+                  }`}
                 onClick={handleStartConsultationClick}
               >
                 <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0">
@@ -340,11 +336,10 @@ function Dashboard() {
 
               {/* Transcript Live View */}
               <div
-                className={`rounded-2xl duration-300 bg-white overflow-hidden shadow-sm shrink-0 ${
-                  !isRecording
-                    ? "h-0 p-0 mt-0 opacity-0 border-0"
-                    : "h-[10rem] p-6 border border-[#2E5674] opacity-100 mb-6"
-                }`}
+                className={`rounded-2xl duration-300 bg-white overflow-hidden shadow-sm shrink-0 ${!isRecording
+                  ? "h-0 p-0 mt-0 opacity-0 border-0"
+                  : "h-[10rem] p-6 border border-[#2E5674] opacity-100 mb-6"
+                  }`}
               >
                 <div className="text-neutral-500 mb-2 font-medium">
                   Live Transcription
@@ -380,12 +375,12 @@ function Dashboard() {
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase())
                 ).length === 0 && (
-                  <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
-                    {searchQuery
-                      ? "No matching consultations found."
-                      : "No recent consultations found."}
-                  </div>
-                )}
+                    <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
+                      {searchQuery
+                        ? "No matching consultations found."
+                        : "No recent consultations found."}
+                    </div>
+                  )}
                 {consultations
                   .filter((c) =>
                     (c.title || "")
@@ -404,11 +399,10 @@ function Dashboard() {
                           onClick={(e) =>
                             handleDeleteConsultation(consultation._id, e)
                           }
-                          className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${
-                            index % 3 === 0
-                              ? "text-red-600"
-                              : "text-red-200 hover:text-red-100"
-                          }`}
+                          className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${index % 3 === 0
+                            ? "text-red-600"
+                            : "text-red-200 hover:text-red-100"
+                            }`}
                           title="Delete Consultation"
                           disabled={isDeleting}
                         >
@@ -450,11 +444,10 @@ function Dashboard() {
                           Get SOAP
                         </button>
                         <button
-                          className={`bg-transparent border ${
-                            index % 3 !== 0
-                              ? "border-white/50 text-white hover:bg-white/10"
-                              : "border-[#192E46]/30 text-[#192E46] hover:bg-black/5"
-                          } px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
+                          className={`bg-transparent border ${index % 3 !== 0
+                            ? "border-white/50 text-white hover:bg-white/10"
+                            : "border-[#192E46]/30 text-[#192E46] hover:bg-black/5"
+                            } px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
                           onClick={() => {
                             setIsTranscriptVisible(true);
                             setTranscriptShowValue(consultation.transcription);
@@ -477,13 +470,12 @@ function Dashboard() {
 
           {/* Calendar Section (Right Column) */}
           <div
-            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
-              activeTab === "dashboard"
-                ? "lg:w-[35%] opacity-100 translate-x-0"
-                : activeTab === "calendar"
+            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === "dashboard"
+              ? "lg:w-[35%] opacity-100 translate-x-0"
+              : activeTab === "calendar"
                 ? "w-full opacity-100 translate-x-0"
                 : "w-0 opacity-0 translate-x-[100%] overflow-hidden"
-            }`}
+              }`}
           >
             <DashboardCalendar
               consultations={consultations}
@@ -510,11 +502,10 @@ function Dashboard() {
             <div className="flex flex-wrap gap-2 items-center justify-between mb-2 pr-12">
               <h2 className="text-2xl font-bold text-[#192E46]">Transcript</h2>
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  isAIEnhancing
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${isAIEnhancing
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                  }`}
                 onClick={async () => {
                   if (isAIEnhancing) return;
                   try {
@@ -592,9 +583,8 @@ function Dashboard() {
             <div className="flex flex-wrap gap-2 items-center justify-between mb-6 pr-12">
               <div className="flex flex-wrap gap-3">
                 <button
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${
-                    isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   onClick={async () => {
                     if (!isSoapEditable) {
                       soapContentRef.current.focus();
@@ -631,8 +621,8 @@ function Dashboard() {
                   {isSoapEditable
                     ? "Save Edits"
                     : isSoapSaving
-                    ? "Saving..."
-                    : "Edit Mode"}
+                      ? "Saving..."
+                      : "Edit Mode"}
                 </button>
                 <button
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E5674] text-white hover:bg-[#192E46] transition-all"
@@ -666,9 +656,8 @@ function Dashboard() {
             <div className="flex-grow overflow-y-auto bg-white rounded-xl border border-gray-100 shadow-inner">
               <pre
                 id="soap-note-content"
-                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${
-                  isSoapEditable ? "bg-blue-50/50" : ""
-                }`}
+                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${isSoapEditable ? "bg-blue-50/50" : ""
+                  }`}
                 contentEditable={isSoapEditable}
                 suppressContentEditableWarning
                 ref={soapContentRef}
@@ -744,9 +733,8 @@ function Dashboard() {
           <button
             type="submit"
             form="edit-title-form"
-            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${
-              isTitleSaving ? "opacity-70 pointer-events-none" : ""
-            }`}
+            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${isTitleSaving ? "opacity-70 pointer-events-none" : ""
+              }`}
           >
             {isTitleSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -779,9 +767,8 @@ function Dashboard() {
           </button>
           <button
             onClick={confirmDelete}
-            className={`px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors ${
-              isDeleting ? "opacity-70 pointer-events-none" : ""
-            }`}
+            className={`px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors ${isDeleting ? "opacity-70 pointer-events-none" : ""
+              }`}
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </button>
