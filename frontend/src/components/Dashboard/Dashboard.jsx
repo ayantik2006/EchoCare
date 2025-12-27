@@ -13,6 +13,10 @@ import {
   Bell,
   Pencil,
   Trash2,
+  Menu,
+  Calendar,
+  LogOut,
+  LayoutGrid,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { Toaster } from "react-hot-toast";
@@ -54,6 +58,7 @@ function Dashboard() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [confirmationDeleteId, setConfirmationDeleteId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const soapContentRef = useRef(null);
 
   useEffect(() => {
@@ -194,6 +199,17 @@ function Dashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await axios.post(BACKEND_URL + "/auth/signout", {}, { withCredentials: true });
+      navigate("/");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed");
+    }
+  };
+
   return (
     <div className="flex w-full min-h-screen bg-[#F0EBE0] font-sans">
       <Toaster position="top-center" reverseOrder={false} />
@@ -208,13 +224,56 @@ function Dashboard() {
       {/* Main Content */}
       <div className="flex-grow p-8 px-10 h-screen flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 shrink-0">
-          <h1 className="text-[2rem] font-bold text-[#192E46]">Dashboard</h1>
+        <div className="flex items-center justify-between mb-6 shrink-0 relative z-20">
+          <h1 className="text-[2rem] font-bold text-[#192E46] flex items-center gap-3">
+            Dashboard
+          </h1>
           <div className="flex items-center gap-4">
+             {/* Mobile Menu Button */}
+            <button 
+              className="lg:hidden p-2 bg-white rounded-full text-[#192E46] shadow-sm"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#DBC6AE] text-[#192E46] font-bold text-xl">
               {docName ? docName.charAt(0).toUpperCase() : "?"}
             </div>
           </div>
+        
+          {/* Mobile Menu Dropdown */}
+          {isMobileMenuOpen && (
+             <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 lg:hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+               <button
+                 onClick={() => {
+                   setActiveTab('dashboard');
+                   setIsMobileMenuOpen(false);
+                 }}
+                 className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === 'dashboard' ? 'text-[#2E5674] font-bold bg-blue-50/50' : 'text-gray-600'}`}
+               >
+                 <LayoutGrid size={18} />
+                 Dashboard
+               </button>
+               <button
+                 onClick={() => {
+                   setActiveTab('calendar');
+                   setIsMobileMenuOpen(false);
+                 }}
+                 className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === 'calendar' ? 'text-[#2E5674] font-bold bg-blue-50/50' : 'text-gray-600'}`}
+               >
+                 <Calendar size={18} />
+                 Calendar
+               </button>
+               <div className="h-px bg-gray-100 my-1"></div>
+               <button
+                 onClick={handleLogout}
+                 className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-600 text-left"
+               >
+                 <LogOut size={18} />
+                 Sign Out
+               </button>
+             </div>
+          )}
         </div>
 
         <div className="flex gap-8 lg:flex-row flex-col flex-grow overflow-hidden relative">

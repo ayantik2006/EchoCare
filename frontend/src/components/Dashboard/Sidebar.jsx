@@ -63,7 +63,6 @@ function Sidebar({ docName, activeTab, setActiveTab }) {
                     </div>
                     <div className="flex flex-col overflow-hidden text-white">
                         <span className="font-semibold text-sm truncate w-[8rem]" title={`Dr. ${docName}`}>Dr. {docName || "Loading..."}</span>
-                        <span className="text-xs text-blue-200">Emergency Medicine</span>
                     </div>
                     <button onClick={handleLogout} className="ml-auto p-1 hover:bg-white/10 rounded-full text-white" title="Logout">
                         <LogOut size={16} />
