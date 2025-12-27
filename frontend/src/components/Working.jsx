@@ -6,33 +6,33 @@ function Working() {
       id: 1,
       title: "Record",
       description: "Securely capture the doctor patient conversation",
-      color: "bg-blue-600",
-      shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900",
+      color: "bg-[#2E5674]",
+      shadow: "shadow-[#2E5674]/20",
+      numberColor: "text-[#192E46]",
     },
     {
       id: 2,
       title: "Transcribe",
       description: "Convert speech to text using medical grade accuracy",
-      color: "bg-blue-600",
-      shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900",
+      color: "bg-[#2E5674]",
+      shadow: "shadow-[#2E5674]/20",
+      numberColor: "text-[#192E46]",
     },
     {
       id: 3,
       title: "SOAP-ready Output",
       description: "Format the transcript into a structred SOAP note",
-      color: "bg-blue-600",
-      shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900",
+      color: "bg-[#2E5674]",
+      shadow: "shadow-[#2E5674]/20",
+      numberColor: "text-[#192E46]",
     },
     {
       id: 4,
       title: "Export",
       description: "Edit if needed, then export to PDF or EHR",
-      color: "bg-blue-600",
-      shadow: "shadow-blue-600/20",
-      numberColor: "text-blue-900",
+      color: "bg-[#2E5674]",
+      shadow: "shadow-[#2E5674]/20",
+      numberColor: "text-[#192E46]",
     },
   ];
 
@@ -41,7 +41,7 @@ function Working() {
   return (
     <div className="mt-20 pb-20 overflow-hidden relative">
       <div className="flex flex-col items-center justify-center mb-12">
-        <h1 className="text-[1.6rem] font-semibold text-[#2D384A]">
+        <h1 className="text-[1.6rem] font-semibold text-[#192E46]">
           How it works
         </h1>
       </div>
@@ -67,7 +67,7 @@ function Working() {
           {seamlessSteps.map((step, index) => (
             <div
               key={`${step.id}-${index}`}
-              className="flex flex-col items-start gap-4 p-8 bg-white rounded-2xl border border-slate-100 shadow-xl relative overflow-hidden group hover:scale-105 transition-transform duration-300 w-[350px] shrink-0"
+              className="flex flex-col items-start gap-4 p-8 bg-white rounded-2xl border border-[#DBC6AE]/20 shadow-xl relative overflow-hidden group hover:scale-105 transition-transform duration-300 w-[350px] shrink-0"
             >
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
               </div>
@@ -77,11 +77,11 @@ function Working() {
                 >
                   {step.id}
                 </div>
-                <h2 className="text-xl font-bold text-slate-800">
+                <h2 className="text-xl font-bold text-[#192E46]">
                   {step.title}
                 </h2>
               </div>
-              <p className="text-slate-600 text-base leading-relaxed font-medium relative z-10 pl-14">
+              <p className="text-[#192E46]/70 text-base leading-relaxed font-medium relative z-10 pl-14">
                 {step.description}
               </p>
             </div>

@@ -25,7 +25,7 @@ function Landing() {
   },[navigate]);
 
   return (
-    <div>
+    <div className="bg-[#F0EBE0] min-h-screen">
       <LandingNavbar />
       <Hero/>
       <Features/>

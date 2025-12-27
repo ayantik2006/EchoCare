@@ -51,6 +51,9 @@ function Dashboard() {
   const [defaultTitleValue, setDefaultTitleValue] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard"); // 'dashboard', 'sessions', 'calendar' // New State
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [confirmationDeleteId, setConfirmationDeleteId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const soapContentRef = useRef(null);
 
   useEffect(() => {
@@ -104,6 +107,18 @@ function Dashboard() {
     recognitionRef.current = recognition;
   }, []);
 
+  const handleCancelConsultation = (e) => {
+    e.stopPropagation();
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+      setTranscriptValue("");
+      finalTranscriptRef.current = "";
+      setMicStartTime(0);
+      toast("Consultation cancelled", { icon: "🚫" });
+    }
+  };
+
   const handleStartConsultationClick = async () => {
     if (isRecording) {
       recognitionRef.current.stop();
@@ -152,24 +167,30 @@ function Dashboard() {
     return index % 3 === 0 ? "text-black/70" : "text-gray-200";
   };
 
-  const handleDeleteConsultation = async (id, e) => {
+  const handleDeleteConsultation = (id, e) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this consultation?")) return;
+    setConfirmationDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  };
 
+  const confirmDelete = async () => {
     try {
       setIsDeleting(true);
       const res = await axios.post(
         BACKEND_URL + "/dashboard/delete-consultation",
-        { id },
+        { id: confirmationDeleteId },
         { withCredentials: true }
       );
       setConsultations(res.data.consultations);
       toast.success("Consultation deleted successfully");
       setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setConfirmationDeleteId("");
     } catch (error) {
       console.error("Delete failed:", error);
       toast.error("Failed to delete consultation");
       setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -178,7 +199,11 @@ function Dashboard() {
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* Sidebar */}
-      <Sidebar docName={docName} activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        docName={docName}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       {/* Main Content */}
       <div className="flex-grow p-8 px-10 h-screen flex flex-col overflow-hidden">
@@ -195,47 +220,82 @@ function Dashboard() {
         <div className="flex gap-8 lg:flex-row flex-col flex-grow overflow-hidden relative">
           {/* Left Column: Banner, Transcript, Consultations */}
           <div
-            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === 'dashboard' ? 'lg:w-[65%] opacity-100 translate-x-0' :
-              activeTab === 'sessions' ? 'w-full opacity-100 translate-x-0' :
-                'w-0 opacity-0 -translate-x-[100%] overflow-hidden'
-              }`}
+            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
+              activeTab === "dashboard"
+                ? "lg:w-[65%] opacity-100 translate-x-0"
+                : activeTab === "sessions"
+                ? "w-full opacity-100 translate-x-0"
+                : "w-0 opacity-0 -translate-x-[100%] overflow-hidden"
+            }`}
           >
             {/* Fixed Top Section */}
             <div className="shrink-0">
               {/* Start Consultation Banner - Collapses in Sessions mode */}
               <div
-                className={`w-full bg-[#2E5674] rounded-3xl flex items-center gap-4 shadow-md transition-all duration-500 ease-in-out hover:shadow-lg cursor-pointer shrink-0 overflow-hidden ${activeTab === 'sessions' ? 'h-0 p-0 mb-0 opacity-0' : 'p-4 mb-4 h-auto opacity-100'
-                  }`}
+                className={`w-full bg-[#2E5674] rounded-3xl flex items-center gap-4 shadow-md transition-all duration-500 ease-in-out hover:shadow-lg cursor-pointer shrink-0 overflow-hidden ${
+                  activeTab === "sessions"
+                    ? "h-0 p-0 mb-0 opacity-0"
+                    : "p-4 mb-4 h-auto opacity-100"
+                }`}
                 onClick={handleStartConsultationClick}
               >
                 <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0">
-                  {!isRecording ? <Mic size={28} className="text-[#2E5674]" /> : <div className="w-5 h-5 bg-[#DBC6AE] rounded-full animate-pulse"></div>}
+                  {!isRecording ? (
+                    <Mic size={28} className="text-[#2E5674]" />
+                  ) : (
+                    <div className="w-5 h-5 bg-[#DBC6AE] rounded-full animate-pulse"></div>
+                  )}
                 </div>
                 <div className="flex flex-col text-white whitespace-nowrap">
-                  <h2 className="text-xl font-bold">{isRecording ? "Listening..." : "Start New Consultation"}</h2>
-                  {isRecording && <p className="text-white/80 text-xs">Click to stop and generate SOAP note</p>}
+                  <h2 className="text-xl font-bold">
+                    {isRecording ? "Listening..." : "Start New Consultation"}
+                  </h2>
+                  {isRecording && (
+                    <p className="text-white/80 text-xs">
+                      Click to stop and generate SOAP note
+                    </p>
+                  )}
                 </div>
+                {isRecording && (
+                  <button
+                    onClick={handleCancelConsultation}
+                    className="ml-auto p-2 bg-red-400/20 hover:bg-red-400/40 text-red-100 rounded-full transition-all mr-2"
+                    title="Cancel Consultation"
+                  >
+                    <X size={24} />
+                  </button>
+                )}
               </div>
 
               {/* Transcript Live View */}
               <div
-                className={`rounded-2xl duration-300 bg-white overflow-hidden shadow-sm shrink-0 ${!isRecording
-                  ? "h-0 p-0 mt-0 opacity-0 border-0"
-                  : "h-[10rem] p-6 border border-[#2E5674] opacity-100 mb-6"
-                  }`}
+                className={`rounded-2xl duration-300 bg-white overflow-hidden shadow-sm shrink-0 ${
+                  !isRecording
+                    ? "h-0 p-0 mt-0 opacity-0 border-0"
+                    : "h-[10rem] p-6 border border-[#2E5674] opacity-100 mb-6"
+                }`}
               >
-                <div className="text-neutral-500 mb-2 font-medium">Live Transcription</div>
+                <div className="text-neutral-500 mb-2 font-medium">
+                  Live Transcription
+                </div>
                 <div className="text-[#192E46]">{transcriptValue}</div>
               </div>
 
-              <h2 className="text-xl font-bold text-[#192E46] mb-4 shrink-0">Recent Consultations</h2>
+              <h2 className="text-xl font-bold text-[#192E46] mb-4 shrink-0">
+                Recent Consultations
+              </h2>
 
               {/* Search Bar */}
               <div className="relative mb-6 shrink-0">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Search
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search by title..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-white rounded-full py-3 pl-12 pr-4 border border-transparent focus:border-[#2E5674] outline-none shadow-sm text-gray-600"
                 />
               </div>
@@ -244,19 +304,32 @@ function Dashboard() {
             {/* Scrollable Consultation List */}
             <div className="flex-grow overflow-y-auto pr-2 pb-10">
               <div className="flex flex-col gap-4">
-                {consultations.length === 0 && (
-                  <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">No recent consultations found.</div>
+                {consultations.filter(c => 
+                  (c.title || "").toLowerCase().includes(searchQuery.toLowerCase())
+                ).length === 0 && (
+                  <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
+                    {searchQuery ? "No matching consultations found." : "No recent consultations found."}
+                  </div>
                 )}
-                {consultations.map((consultation, index) => (
+                {consultations
+                  .filter(c => (c.title || "").toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((consultation, index) => (
                   <div
                     key={index}
-                    className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${getCardColor(index)} relative group`}
+                    className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${getCardColor(
+                      index
+                    )} relative group`}
                   >
-                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <div className="absolute top-4 right-4 z-10">
                       <button
-                        onClick={(e) => handleDeleteConsultation(consultation._id, e)}
-                        className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${index % 3 === 0 ? "text-red-600" : "text-red-200 hover:text-red-100"
-                          }`}
+                        onClick={(e) =>
+                          handleDeleteConsultation(consultation._id, e)
+                        }
+                        className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${
+                          index % 3 === 0
+                            ? "text-red-600"
+                            : "text-red-200 hover:text-red-100"
+                        }`}
                         title="Delete Consultation"
                         disabled={isDeleting}
                       >
@@ -264,7 +337,11 @@ function Dashboard() {
                       </button>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className={`font-semibold text-lg ${getTextColor(index)} flex items-center gap-2`}>
+                      <h3
+                        className={`font-semibold text-lg ${getTextColor(
+                          index
+                        )} flex items-center gap-2`}
+                      >
                         {consultation.title || `Title_${consultation.date}`}
                         <Pencil
                           size={14}
@@ -279,7 +356,8 @@ function Dashboard() {
                       </h3>
                     </div>
                     <div className={`text-sm mb-4 ${getSubTextColor(index)}`}>
-                      Date: {consultation.date} | Duration: {consultation.duration}
+                      Date: {consultation.date} | Duration:{" "}
+                      {consultation.duration}
                     </div>
                     <div className="flex gap-3">
                       <button
@@ -293,11 +371,17 @@ function Dashboard() {
                         Get SOAP
                       </button>
                       <button
-                        className={`bg-transparent border ${index % 3 !== 0 ? 'border-white/50 text-white hover:bg-white/10' : 'border-[#192E46]/30 text-[#192E46] hover:bg-black/5'} px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
+                        className={`bg-transparent border ${
+                          index % 3 !== 0
+                            ? "border-white/50 text-white hover:bg-white/10"
+                            : "border-[#192E46]/30 text-[#192E46] hover:bg-black/5"
+                        } px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
                         onClick={() => {
                           setIsTranscriptVisible(true);
                           setTranscriptShowValue(consultation.transcription);
-                          setAITranscriptShowValue(consultation.AITranscription);
+                          setAITranscriptShowValue(
+                            consultation.AITranscription
+                          );
                           setConsultationId(consultation._id);
                           setIsAIEnhancing(false);
                           setIsAITranscriptVisible(false);
@@ -314,12 +398,18 @@ function Dashboard() {
 
           {/* Calendar Section (Right Column) */}
           <div
-            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === 'dashboard' ? 'lg:w-[35%] opacity-100 translate-x-0' :
-              activeTab === 'calendar' ? 'w-full opacity-100 translate-x-0' :
-                'w-0 opacity-0 translate-x-[100%] overflow-hidden'
-              }`}
+            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
+              activeTab === "dashboard"
+                ? "lg:w-[35%] opacity-100 translate-x-0"
+                : activeTab === "calendar"
+                ? "w-full opacity-100 translate-x-0"
+                : "w-0 opacity-0 translate-x-[100%] overflow-hidden"
+            }`}
           >
-            <DashboardCalendar consultations={consultations} isExpanded={activeTab === 'calendar'} />
+            <DashboardCalendar
+              consultations={consultations}
+              isExpanded={activeTab === "calendar"}
+            />
           </div>
         </div>
       </div>
@@ -341,7 +431,11 @@ function Dashboard() {
             <div className="flex items-center justify-between mb-2 pr-12">
               <h2 className="text-2xl font-bold text-[#192E46]">Transcript</h2>
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${isAIEnhancing ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  isAIEnhancing
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                }`}
                 onClick={async () => {
                   if (isAIEnhancing) return;
                   try {
@@ -368,7 +462,8 @@ function Dashboard() {
             </div>
 
             <p className="text-gray-400 text-sm italic mb-6 border-b border-gray-100 pb-4">
-              (This transcript is auto-generated from speech and may contain inaccuracies)
+              (This transcript is auto-generated from speech and may contain
+              inaccuracies)
             </p>
 
             {AITranscriptShowValue !== "" && (
@@ -379,7 +474,10 @@ function Dashboard() {
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   onChange={(e) => setIsAITranscriptVisible(e.target.checked)}
                 />
-                <label htmlFor="show-ai-transcript" className="text-sm font-medium text-blue-700 cursor-pointer">
+                <label
+                  htmlFor="show-ai-transcript"
+                  className="text-sm font-medium text-blue-700 cursor-pointer"
+                >
                   Show AI Enhanced Version
                 </label>
               </div>
@@ -387,7 +485,9 @@ function Dashboard() {
 
             <div className="flex-grow overflow-y-auto bg-gray-50 rounded-xl p-6">
               <pre className="font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed">
-                {!isAITranscriptVisible ? transcriptShowValue : AITranscriptShowValue}
+                {!isAITranscriptVisible
+                  ? transcriptShowValue
+                  : AITranscriptShowValue}
               </pre>
             </div>
           </div>
@@ -413,11 +513,15 @@ function Dashboard() {
             <div className="flex items-center justify-between mb-6 pr-12">
               <div>
                 <h2 className="text-2xl font-bold text-[#192E46]">SOAP Note</h2>
-                <p className="text-gray-400 text-sm italic mt-1">(Generated by EchoCare AI · Requires clinician review)</p>
+                <p className="text-gray-400 text-sm italic mt-1">
+                  (Generated by EchoCare AI · Requires clinician review)
+                </p>
               </div>
               <div className="flex gap-3">
                 <button
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${isSoapSaving ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${
+                    isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   onClick={async () => {
                     if (!isSoapEditable) {
                       soapContentRef.current.focus();
@@ -446,20 +550,35 @@ function Dashboard() {
                     }
                   }}
                 >
-                  {isSoapEditable ? <Save size={16} /> : <SquarePen size={16} />}
-                  {isSoapEditable ? "Save Edits" : (isSoapSaving ? "Saving..." : "Edit Mode")}
+                  {isSoapEditable ? (
+                    <Save size={16} />
+                  ) : (
+                    <SquarePen size={16} />
+                  )}
+                  {isSoapEditable
+                    ? "Save Edits"
+                    : isSoapSaving
+                    ? "Saving..."
+                    : "Edit Mode"}
                 </button>
                 <button
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E5674] text-white hover:bg-[#192E46] transition-all"
                   onClick={() => {
-                    const element = document.getElementById("soap-note-content");
+                    const element =
+                      document.getElementById("soap-note-content");
                     html2pdf()
                       .set({
                         margin: 12,
-                        filename: `SOAP_${new Date().toLocaleDateString("en-IN")}.pdf`,
+                        filename: `SOAP_${new Date().toLocaleDateString(
+                          "en-IN"
+                        )}.pdf`,
                         image: { type: "jpeg", quality: 0.98 },
                         html2canvas: { scale: 2, useCORS: true },
-                        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                        jsPDF: {
+                          unit: "mm",
+                          format: "a4",
+                          orientation: "portrait",
+                        },
                       })
                       .from(element)
                       .save();
@@ -474,8 +593,9 @@ function Dashboard() {
             <div className="flex-grow overflow-y-auto bg-white rounded-xl border border-gray-100 shadow-inner">
               <pre
                 id="soap-note-content"
-                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${isSoapEditable ? "bg-blue-50/50" : ""
-                  }`}
+                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${
+                  isSoapEditable ? "bg-blue-50/50" : ""
+                }`}
                 contentEditable={isSoapEditable}
                 suppressContentEditableWarning
                 ref={soapContentRef}
@@ -492,10 +612,12 @@ function Dashboard() {
         open={isEditTitleDialogOpen}
         onClose={() => setIsEditTitleDialogOpen(false)}
         PaperProps={{
-          style: { borderRadius: '1rem', padding: '1rem' }
+          style: { borderRadius: "1rem", padding: "1rem" },
         }}
       >
-        <DialogTitle className="font-bold text-[#192E46]">Edit Consultation Title</DialogTitle>
+        <DialogTitle className="font-bold text-[#192E46]">
+          Edit Consultation Title
+        </DialogTitle>
         <DialogContent>
           <DialogContentText className="mb-4">
             Give this session a descriptive title for easy reference.
@@ -507,7 +629,11 @@ function Dashboard() {
               e.preventDefault();
               setIsTitleSaving(true);
               try {
-                const res = await axios.post(BACKEND_URL + "/dashboard/edit-title", { id: titleEditId, title: e.currentTarget[0].value }, { withCredentials: true });
+                const res = await axios.post(
+                  BACKEND_URL + "/dashboard/edit-title",
+                  { id: titleEditId, title: e.currentTarget[0].value },
+                  { withCredentials: true }
+                );
                 toast.success("Title saved!", { duration: 3000 });
                 setIsTitleSaving(false);
                 setConsultations(res.data.consultations);
@@ -537,9 +663,45 @@ function Dashboard() {
           <button
             type="submit"
             form="edit-title-form"
-            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${isTitleSaving ? "opacity-70 pointer-events-none" : ""}`}
+            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${
+              isTitleSaving ? "opacity-70 pointer-events-none" : ""
+            }`}
           >
             {isTitleSaving ? "Saving..." : "Save Changes"}
+          </button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        PaperProps={{
+          style: { borderRadius: "1rem", padding: "1rem" },
+        }}
+      >
+        <DialogTitle className="font-bold text-[#192E46]">
+          Delete Consultation?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this consultation? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="px-6 pb-4">
+          <button
+            onClick={() => setIsDeleteDialogOpen(false)}
+            className="px-4 py-2 text-gray-500 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmDelete}
+            className={`px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors ${
+              isDeleting ? "opacity-70 pointer-events-none" : ""
+            }`}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
           </button>
         </DialogActions>
       </Dialog>
