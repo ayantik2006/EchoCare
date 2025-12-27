@@ -1,4 +1,3 @@
-import MainNavbar from "../MainNavbar";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -9,7 +8,11 @@ import {
   Save,
   SquarePen,
   Sparkles,
+  Search,
+  Users,
+  Bell,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { Toaster } from "react-hot-toast";
@@ -19,6 +22,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import Sidebar from "./Sidebar";
+import DashboardCalendar from "./DashboardCalendar";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -41,9 +46,11 @@ function Dashboard() {
   const [isAIEnhancing, setIsAIEnhancing] = useState(false);
   const [isAITranscriptVisible, setIsAITranscriptVisible] = useState(false);
   const [isEditTitleDialogOpen, setIsEditTitleDialogOpen] = useState(false);
-  const [titleEditId,setTitleEditId]=useState("");
-  const [isTitleSaving,setIsTitleSaving]=useState(false);
-  const [defaultTitleValue,setDefaultTitleValue]=useState("");
+  const [titleEditId, setTitleEditId] = useState("");
+  const [isTitleSaving, setIsTitleSaving] = useState(false);
+  const [defaultTitleValue, setDefaultTitleValue] = useState("");
+  const [activeTab, setActiveTab] = useState("dashboard"); // 'dashboard', 'sessions', 'calendar' // New State
+  const [isDeleting, setIsDeleting] = useState(false);
   const soapContentRef = useRef(null);
 
   useEffect(() => {
@@ -51,7 +58,6 @@ function Dashboard() {
       .post(BACKEND_URL + "/auth/check-login", {}, { withCredentials: true })
       .then((res) => {
         setDocName(res.data.docName);
-        navigate("/dashboard");
       })
       .catch((e) => {
         if (e.response?.status === 401) {
@@ -131,325 +137,410 @@ function Dashboard() {
     setIsRecording(!isRecording);
   };
 
+  const getCardColor = (index) => {
+    const colors = ["bg-[#DBC6AE]", "bg-[#2E5674]", "bg-[#192E46]"];
+    return colors[index % colors.length];
+  };
+
+  const getTextColor = (index) => {
+    // Index 0 (Beige) gets dark text, others (Blues) get white text
+    return index % 3 === 0 ? "text-black" : "text-white";
+  };
+
+  const getSubTextColor = (index) => {
+    // Index 0 (Beige) gets dark text, others (Blues) get whitish text
+    return index % 3 === 0 ? "text-black/70" : "text-gray-200";
+  };
+
+  const handleDeleteConsultation = async (id, e) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this consultation?")) return;
+
+    try {
+      setIsDeleting(true);
+      const res = await axios.post(
+        BACKEND_URL + "/dashboard/delete-consultation",
+        { id },
+        { withCredentials: true }
+      );
+      setConsultations(res.data.consultations);
+      toast.success("Consultation deleted successfully");
+      setIsDeleting(false);
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast.error("Failed to delete consultation");
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="flex w-full flex-col items-start">
+    <div className="flex w-full min-h-screen bg-[#F0EBE0] font-sans">
       <Toaster position="top-center" reverseOrder={false} />
-      <MainNavbar />
-      <div className="ml-20 mr-20 [@media(max-width:418px)]:mx-10">
-        <div className="mt-10 text-[2rem] font-semibold text-[#2E384A] flex items-center gap-2 flex-wrap [@media(max-width:418px)]:text-[1.5rem]">
-          <div>Welcome back</div> <div>Dr. {docName}</div>
+
+      {/* Sidebar */}
+      <Sidebar docName={docName} activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      {/* Main Content */}
+      <div className="flex-grow p-8 px-10 h-screen flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 shrink-0">
+          <h1 className="text-[2rem] font-bold text-[#192E46]">Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#DBC6AE] text-[#192E46] font-bold text-xl">
+              {docName ? docName.charAt(0).toUpperCase() : "?"}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center flex-wrap gap-2 mt-10">
-          <button
-            className="flex gap-2 items-center bg-[#3C73D0] text-white px-5 py-2 text-[1.1rem] rounded-md cursor-pointer hover:opacity-90 [@media(max-width:418px)]:text-[1rem] [@media(max-width:418px)]:px-3"
-            onClick={handleStartConsultationClick}
+
+        <div className="flex gap-8 lg:flex-row flex-col flex-grow overflow-hidden relative">
+          {/* Left Column: Banner, Transcript, Consultations */}
+          <div
+            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === 'dashboard' ? 'lg:w-[65%] opacity-100 translate-x-0' :
+              activeTab === 'sessions' ? 'w-full opacity-100 translate-x-0' :
+                'w-0 opacity-0 -translate-x-[100%] overflow-hidden'
+              }`}
           >
-            {!isRecording && <Mic className="" />}
-            {!isRecording && <p>Start New Consultation</p>}
-            {isRecording && (
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-red-300 rounded-full animate-pulse"></div>
-                <p>Stop and get SOAP</p>
+            {/* Fixed Top Section */}
+            <div className="shrink-0">
+              {/* Start Consultation Banner - Collapses in Sessions mode */}
+              <div
+                className={`w-full bg-[#2E5674] rounded-3xl flex items-center gap-4 shadow-md transition-all duration-500 ease-in-out hover:shadow-lg cursor-pointer shrink-0 overflow-hidden ${activeTab === 'sessions' ? 'h-0 p-0 mb-0 opacity-0' : 'p-4 mb-4 h-auto opacity-100'
+                  }`}
+                onClick={handleStartConsultationClick}
+              >
+                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0">
+                  {!isRecording ? <Mic size={28} className="text-[#2E5674]" /> : <div className="w-5 h-5 bg-[#DBC6AE] rounded-full animate-pulse"></div>}
+                </div>
+                <div className="flex flex-col text-white whitespace-nowrap">
+                  <h2 className="text-xl font-bold">{isRecording ? "Listening..." : "Start New Consultation"}</h2>
+                  {isRecording && <p className="text-white/80 text-xs">Click to stop and generate SOAP note</p>}
+                </div>
+              </div>
+
+              {/* Transcript Live View */}
+              <div
+                className={`rounded-2xl duration-300 bg-white overflow-hidden shadow-sm shrink-0 ${!isRecording
+                  ? "h-0 p-0 mt-0 opacity-0 border-0"
+                  : "h-[10rem] p-6 border border-[#2E5674] opacity-100 mb-6"
+                  }`}
+              >
+                <div className="text-neutral-500 mb-2 font-medium">Live Transcription</div>
+                <div className="text-[#192E46]">{transcriptValue}</div>
+              </div>
+
+              <h2 className="text-xl font-bold text-[#192E46] mb-4 shrink-0">Recent Consultations</h2>
+
+              {/* Search Bar */}
+              <div className="relative mb-6 shrink-0">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="w-full bg-white rounded-full py-3 pl-12 pr-4 border border-transparent focus:border-[#2E5674] outline-none shadow-sm text-gray-600"
+                />
+              </div>
+            </div>
+
+            {/* Scrollable Consultation List */}
+            <div className="flex-grow overflow-y-auto pr-2 pb-10">
+              <div className="flex flex-col gap-4">
+                {consultations.length === 0 && (
+                  <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">No recent consultations found.</div>
+                )}
+                {consultations.map((consultation, index) => (
+                  <div
+                    key={index}
+                    className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${getCardColor(index)} relative group`}
+                  >
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <button
+                        onClick={(e) => handleDeleteConsultation(consultation._id, e)}
+                        className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${index % 3 === 0 ? "text-red-600" : "text-red-200 hover:text-red-100"
+                          }`}
+                        title="Delete Consultation"
+                        disabled={isDeleting}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className={`font-semibold text-lg ${getTextColor(index)} flex items-center gap-2`}>
+                        {consultation.title || `Title_${consultation.date}`}
+                        <Pencil
+                          size={14}
+                          className={`cursor-pointer opacity-70 hover:opacity-100`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsEditTitleDialogOpen(true);
+                            setTitleEditId(consultation._id);
+                            setDefaultTitleValue(consultation.title);
+                          }}
+                        />
+                      </h3>
+                    </div>
+                    <div className={`text-sm mb-4 ${getSubTextColor(index)}`}>
+                      Date: {consultation.date} | Duration: {consultation.duration}
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        className="bg-white/90 hover:bg-white text-[#192E46] px-5 py-1.5 rounded-full text-sm font-medium transition-colors shadow-sm"
+                        onClick={() => {
+                          setIsSoapVisible(true);
+                          setSoapShowValue(consultation.soap);
+                          setConsultationId(consultation._id);
+                        }}
+                      >
+                        Get SOAP
+                      </button>
+                      <button
+                        className={`bg-transparent border ${index % 3 !== 0 ? 'border-white/50 text-white hover:bg-white/10' : 'border-[#192E46]/30 text-[#192E46] hover:bg-black/5'} px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
+                        onClick={() => {
+                          setIsTranscriptVisible(true);
+                          setTranscriptShowValue(consultation.transcription);
+                          setAITranscriptShowValue(consultation.AITranscription);
+                          setConsultationId(consultation._id);
+                          setIsAIEnhancing(false);
+                          setIsAITranscriptVisible(false);
+                        }}
+                      >
+                        Transcript
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Calendar Section (Right Column) */}
+          <div
+            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === 'dashboard' ? 'lg:w-[35%] opacity-100 translate-x-0' :
+              activeTab === 'calendar' ? 'w-full opacity-100 translate-x-0' :
+                'w-0 opacity-0 translate-x-[100%] overflow-hidden'
+              }`}
+          >
+            <DashboardCalendar consultations={consultations} isExpanded={activeTab === 'calendar'} />
+          </div>
+        </div>
+      </div>
+
+      {/* Transcript Modal */}
+      {isTranscriptVisible && (
+        <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col p-8 shadow-2xl relative animate-in fade-in zoom-in duration-300">
+            <button
+              className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              onClick={() => {
+                setIsTranscriptVisible(false);
+                setTranscriptShowValue("");
+              }}
+            >
+              <X size={24} className="text-gray-500" />
+            </button>
+
+            <div className="flex items-center justify-between mb-2 pr-12">
+              <h2 className="text-2xl font-bold text-[#192E46]">Transcript</h2>
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${isAIEnhancing ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
+                onClick={async () => {
+                  if (isAIEnhancing) return;
+                  try {
+                    setIsAIEnhancing(true);
+                    toast.success("AI Enhancing has started...");
+                    const res = await axios.post(
+                      BACKEND_URL + "/dashboard/enhance-transcript",
+                      { transcript: transcriptShowValue, id: consultationId },
+                      { withCredentials: true }
+                    );
+                    setConsultations(res.data.consultations);
+                    setAITranscriptShowValue(res.data.AITranscript);
+                    setIsAIEnhancing(false);
+                    toast.success("Transcript enhanced with AI!");
+                  } catch (e) {
+                    console.log(e);
+                    setIsAIEnhancing(false);
+                  }
+                }}
+              >
+                <Sparkles size={16} />
+                {AITranscriptShowValue === "" ? "AI Enhance" : "Re-Enhance"}
+              </button>
+            </div>
+
+            <p className="text-gray-400 text-sm italic mb-6 border-b border-gray-100 pb-4">
+              (This transcript is auto-generated from speech and may contain inaccuracies)
+            </p>
+
+            {AITranscriptShowValue !== "" && (
+              <div className="flex items-center gap-3 mb-4 bg-blue-50 p-2 rounded-lg self-start">
+                <input
+                  type="checkbox"
+                  id="show-ai-transcript"
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  onChange={(e) => setIsAITranscriptVisible(e.target.checked)}
+                />
+                <label htmlFor="show-ai-transcript" className="text-sm font-medium text-blue-700 cursor-pointer">
+                  Show AI Enhanced Version
+                </label>
               </div>
             )}
-          </button>
-          {isRecording && (
-            <button
-              className="py-[0.58rem] bg-[#3C73D0] text-white px-3 rounded-md cursor-pointer hover:opacity-90"
-              onClick={() => {
-                recognitionRef.current.stop();
-                setIsRecording(false);
-              }}
-            >
-              Cancel
-            </button>
-          )}
-        </div>
 
-        <div
-          className={`rounded-md duration-200 bg-[#F5F6FB] overflow-y-auto ${
-            !isRecording
-              ? "h-0 p-0 mt-0 border-0 w-0"
-              : "h-[10rem] p-3 py-2 mt-5 w-full  border-2 border-[#3C73D0]"
-          }`}
-          defaultValue={transcriptValue}
-        >
-          <div className="text-neutral-500">Raw Transcription</div>
-          {transcriptValue}
-        </div>
-
-        <h2 className="mt-10 text-[1.5rem] text-[#2E384A] font-semibold [@media(max-width:418px)]:text-[1.1rem]">
-          Recent Consultations
-        </h2>
-        {consultations.length == 0 && (
-          <div className="mt-5 text-neutral-500">No recent consultations</div>
-        )}
-        {consultations.length !== 0 && (
-          <div className="flex gap-8 flex-wrap items-center mt-5 pb-10">
-            {consultations.map((consultation, index) => {
-              return (
-                <div
-                  className="w-fit h-fit p-5 flex flex-col gap-3 items-start shadow-[0_0_4px_gray] duration-300 hover:-translate-y-1 hover:translate-x-1 hover:shadow-[0_0_10px_gray] rounded-lg"
-                  key={index}
-                >
-                  <div className="flex items-center justify-between gap-4 w-full">
-                    <h2 className="font-semibold">
-                      {consultation.title === ""
-                        ? "Title_" + consultation.date
-                        : consultation.title}
-                    </h2>
-                    <Pencil
-                      className="stroke-neutral-500 cursor-pointer hover:stroke-neutral-700"
-                      size={14}
-                      onClick={() => {
-                        setIsEditTitleDialogOpen(true);
-                        setTitleEditId(consultation._id);
-                        setDefaultTitleValue(consultation.title);
-                      }}
-                    />
-                  </div>
-                  <h2 className="text-neutral-400 mb-[-0.5rem]">
-                    Date: {consultation.date}
-                  </h2>
-                  <h3 className="flex text-neutral-400">
-                    <p className="text-neutral-400">Duration:&nbsp;</p>{" "}
-                    {consultation.duration}
-                  </h3>
-                  <button
-                    className="bg-[#3C73D0] text-white px-3 py-[0.1rem]  rounded-md text-[0.9rem] cursor-pointer hover:opacity-90"
-                    onClick={() => {
-                      setIsSoapVisible(true);
-                      setSoapShowValue(consultation.soap);
-                      setConsultationId(consultation._id);
-                    }}
-                  >
-                    Get SOAP
-                  </button>
-                  <button
-                    className="border-2 border-[#3C73D0] text-[#3C73D0] px-3 py-[0.1rem] rounded-md text-[0.9rem] cursor-pointer hover:opacity-90"
-                    onClick={() => {
-                      setIsTranscriptVisible(true);
-                      setTranscriptShowValue(consultation.transcription);
-                      setAITranscriptShowValue(consultation.AITranscription);
-                      setConsultationId(consultation._id);
-                      setIsAIEnhancing(false);
-                      setIsAITranscriptVisible(false);
-                    }}
-                  >
-                    Transcript
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      {isTranscriptVisible && (
-        <div className="w-full min-h-full z-80 absolute bg-white flex flex-col items-center p-10 gap-3">
-          <div
-            className="ml-auto cursor-pointer"
-            onClick={() => {
-              setIsTranscriptVisible(false);
-              setTranscriptShowValue("");
-            }}
-          >
-            <X />
-          </div>
-          <h1 className="text-[#2E384A] text-[1.8rem] font-semibold flex items-center w-full justify-between gap-3">
-            <div className="">Transcript</div>
-            <div
-              className={`text-[1rem] mt-2 flex gap-1 items-center bg-blue-100 px-2 py-1 rounded-lg cursor-pointer duration-300 hover:bg-blue-200 ${
-                isAIEnhancing ? "pointer-events-none bg-gray-300" : ""
-              }`}
-              onClick={async () => {
-                try {
-                  setIsAIEnhancing(true);
-                  toast.success("AI Enhancing has started...");
-                  const res = await axios.post(
-                    BACKEND_URL + "/dashboard/enhance-transcript",
-                    { transcript: transcriptShowValue, id: consultationId },
-                    { withCredentials: true }
-                  );
-                  setConsultations(res.data.consultations);
-                  setAITranscriptShowValue(res.data.AITranscript);
-                  setIsAIEnhancing(false);
-                  toast.success("Transcript enhanced with AI!");
-                } catch (e) {
-                  console.log(e);
-                }
-              }}
-            >
-              <Sparkles size={16} />
-              {AITranscriptShowValue === "" ? "AI Enhance" : "Re-Enhance"}
+            <div className="flex-grow overflow-y-auto bg-gray-50 rounded-xl p-6">
+              <pre className="font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed">
+                {!isAITranscriptVisible ? transcriptShowValue : AITranscriptShowValue}
+              </pre>
             </div>
-          </h1>
-          <p className="items-start w-full text-neutral-500 italic">
-            (This transcript is auto-generated from speech and may contain
-            inaccuracies)
-          </p>
-          {AITranscriptShowValue !== "" && (
-            <div className="self-start flex items-center gap-2 bg-blue-200 px-2 py-1 rounded-lg font-semibold">
-              <input
-                type="checkbox"
-                className="w-[1rem] h-[1rem] cursor-pointer"
-                id="show-ai-transcript"
-                onChange={(e) => {
-                  setIsAITranscriptVisible(e.currentTarget.checked);
-                }}
-              />
-              <label htmlFor="show-ai-transcript" className="cursor-pointer">
-                Show AI Version
-              </label>
-            </div>
-          )}
-          <pre className="text-[1.1rem] font-sans whitespace-pre-wrap mt-5 pb-10">
-            {!isAITranscriptVisible
-              ? transcriptShowValue
-              : AITranscriptShowValue}
-          </pre>
+          </div>
         </div>
       )}
 
+      {/* SOAP Modal */}
       {isSoapVisible && (
-        <div className="w-full overflow-y-auto overflow-x-hidden h-full z-80 absolute bg-white flex flex-col items-center p-10 gap-3">
-          <div
-            className="ml-auto cursor-pointer"
-            onClick={() => {
-              setIsSoapVisible(false);
-              setSoapShowValue("");
-              setConsultationId("");
-              setIsSoapEditable(false);
-            }}
-          >
-            <X />
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col p-8 shadow-2xl relative animate-in fade-in zoom-in duration-300">
             <button
-              className={`px-3 py-[0.1rem] border-2 border-[#3C73D0] rounded-md flex items-center gap-1 text-[#3C73D0] cursor-pointer ${
-                isSoapSaving ? "pointer-events-none" : ""
-              }`}
-              onClick={async () => {
-                if (!isSoapEditable) {
-                  soapContentRef.current.focus();
-                  setIsSoapEditable(true);
-                  return;
-                }
-                if (consultationId == "") return;
-                try {
-                  setIsSoapSaving(true);
-                  setIsSoapEditable(false);
-                  const res = await axios.post(
-                    BACKEND_URL + "/dashboard/update-soap",
-                    {
-                      newSoap: soapContentRef.current.innerText,
-                      id: consultationId,
-                    },
-                    { withCredentials: true }
-                  );
-                  setConsultations(res.data.consultations);
-                  setIsSoapEditable(false);
-                  setIsSoapSaving(false);
-                  toast.success("SOAP successfully saved!");
-                } catch (e) {
-                  console.log(e);
-                }
-              }}
-            >
-              {isSoapEditable && (
-                <p className="flex items-center gap-1">
-                  <Save size={16} />
-                  Save Edits
-                </p>
-              )}
-              {!isSoapEditable && (
-                <p className={"flex items-center gap-1"}>
-                  <SquarePen size={16} />
-                  {!isSoapSaving ? "Edit Soap" : "Saving..."}
-                </p>
-              )}
-            </button>
-            <button
-              className="bg-[#3C73D0] px-3 text-white py-1 flex gap-1 items-center rounded-md hover:opacity-90 cursor-pointer
-            "
+              className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors"
               onClick={() => {
-                const element = document.getElementById("soap-note");
-                html2pdf()
-                  .set({
-                    margin: 12,
-                    filename: `SOAP_${new Date().toLocaleDateString(
-                      "en-IN"
-                    )}.pdf`,
-                    image: { type: "jpeg", quality: 0.98 },
-                    html2canvas: {
-                      scale: 2,
-                      useCORS: true,
-                    },
-                    jsPDF: {
-                      unit: "mm",
-                      format: "a4",
-                      orientation: "portrait",
-                    },
-                  })
-                  .from(element)
-                  .save();
+                setIsSoapVisible(false);
+                setSoapShowValue("");
+                setConsultationId("");
+                setIsSoapEditable(false);
               }}
             >
-              <ArrowDownToLine size={16} />
-              Export
+              <X size={24} className="text-gray-500" />
             </button>
-          </div>
-          <div id="soap-note" className="flex flex-col items-center mt-4">
-            <h1 className="text-[#2E384A] text-[1.8rem] font-semibold">
-              SOAP Note
-            </h1>
-            <h1 className="text-[#6b6b6b] text-[0.9rem] italic text-center">
-              (Generated by EchoCare AI · Requires clinician review)
-            </h1>
-            <pre
-              className={`text-[1.1rem] font-sans p-10 px-2 whitespace-pre-wrap outline-none ${
-                isSoapEditable
-                  ? "bg-blue-100 rounded-md border border-blue-500 mt-5"
-                  : ""
-              }`}
-              suppressContentEditableWarning
-              contentEditable={isSoapEditable}
-              ref={soapContentRef}
-            >
-              {soapShowValue}
-            </pre>
+
+            <div className="flex items-center justify-between mb-6 pr-12">
+              <div>
+                <h2 className="text-2xl font-bold text-[#192E46]">SOAP Note</h2>
+                <p className="text-gray-400 text-sm italic mt-1">(Generated by EchoCare AI · Requires clinician review)</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${isSoapSaving ? "opacity-50 cursor-not-allowed" : ""}`}
+                  onClick={async () => {
+                    if (!isSoapEditable) {
+                      soapContentRef.current.focus();
+                      setIsSoapEditable(true);
+                      return;
+                    }
+                    if (consultationId == "") return;
+                    try {
+                      setIsSoapSaving(true);
+                      setIsSoapEditable(false);
+                      const res = await axios.post(
+                        BACKEND_URL + "/dashboard/update-soap",
+                        {
+                          newSoap: soapContentRef.current.innerText,
+                          id: consultationId,
+                        },
+                        { withCredentials: true }
+                      );
+                      setConsultations(res.data.consultations);
+                      setIsSoapEditable(false);
+                      setIsSoapSaving(false);
+                      toast.success("SOAP successfully saved!");
+                    } catch (e) {
+                      console.log(e);
+                      setIsSoapSaving(false);
+                    }
+                  }}
+                >
+                  {isSoapEditable ? <Save size={16} /> : <SquarePen size={16} />}
+                  {isSoapEditable ? "Save Edits" : (isSoapSaving ? "Saving..." : "Edit Mode")}
+                </button>
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E5674] text-white hover:bg-[#192E46] transition-all"
+                  onClick={() => {
+                    const element = document.getElementById("soap-note-content");
+                    html2pdf()
+                      .set({
+                        margin: 12,
+                        filename: `SOAP_${new Date().toLocaleDateString("en-IN")}.pdf`,
+                        image: { type: "jpeg", quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true },
+                        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                      })
+                      .from(element)
+                      .save();
+                  }}
+                >
+                  <ArrowDownToLine size={16} />
+                  Export PDF
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-grow overflow-y-auto bg-white rounded-xl border border-gray-100 shadow-inner">
+              <pre
+                id="soap-note-content"
+                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${isSoapEditable ? "bg-blue-50/50" : ""
+                  }`}
+                contentEditable={isSoapEditable}
+                suppressContentEditableWarning
+                ref={soapContentRef}
+              >
+                {soapShowValue}
+              </pre>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Edit Title Dialog */}
       <Dialog
         open={isEditTitleDialogOpen}
-        onClose={() => {
-          setIsEditTitleDialogOpen(false);
+        onClose={() => setIsEditTitleDialogOpen(false)}
+        PaperProps={{
+          style: { borderRadius: '1rem', padding: '1rem' }
         }}
       >
-        <DialogTitle>Edit Consultation Title</DialogTitle>
+        <DialogTitle className="font-bold text-[#192E46]">Edit Consultation Title</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Create or Edit the consultation title. This will help to find and track them easily.
+          <DialogContentText className="mb-4">
+            Give this session a descriptive title for easy reference.
           </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <form className="flex flex-col gap-3 w-full px-4 pb-2 mt-[-1rem]" onSubmit={async (e)=>{
-            e.preventDefault();
-            setIsTitleSaving(true);
-            try{
-              const res=await axios.post(BACKEND_URL+"/dashboard/edit-title",{id:titleEditId, title:e.currentTarget[0].value},{withCredentials:true});
-              toast.success("Title saved!",{duration:3000});
-              setIsTitleSaving(false);
-              setConsultations(res.data.consultations);
-              setIsEditTitleDialogOpen(false);
-            }catch(e){
-              console.log(e);
-            }
-          }}>
-            <input type="text" className="border outline-none px-2 py-1" required defaultValue={defaultTitleValue} placeholder="Consultation Title" />
-            <button type="submit" className={`bg-[#3C73D0] text-white py-1 rounded-md hover:opacity-90 cursor-pointer ${isTitleSaving?"bg-neutral-400 pointer-events-none":""}`} >{isTitleSaving?"Saving...":"Save Title"}</button>
+          <form
+            id="edit-title-form"
+            className="flex flex-col gap-3 mt-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setIsTitleSaving(true);
+              try {
+                const res = await axios.post(BACKEND_URL + "/dashboard/edit-title", { id: titleEditId, title: e.currentTarget[0].value }, { withCredentials: true });
+                toast.success("Title saved!", { duration: 3000 });
+                setIsTitleSaving(false);
+                setConsultations(res.data.consultations);
+                setIsEditTitleDialogOpen(false);
+              } catch (e) {
+                console.log(e);
+                setIsTitleSaving(false);
+              }
+            }}
+          >
+            <input
+              type="text"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-[#2E5674] transition-colors"
+              required
+              defaultValue={defaultTitleValue}
+              placeholder="e.g., General Checkup - John Doe"
+            />
           </form>
+        </DialogContent>
+        <DialogActions className="px-6 pb-4">
+          <button
+            onClick={() => setIsEditTitleDialogOpen(false)}
+            className="px-4 py-2 text-gray-500 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="edit-title-form"
+            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${isTitleSaving ? "opacity-70 pointer-events-none" : ""}`}
+          >
+            {isTitleSaving ? "Saving..." : "Save Changes"}
+          </button>
         </DialogActions>
       </Dialog>
     </div>

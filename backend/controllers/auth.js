@@ -24,6 +24,7 @@ const deleteCookie = async (res) => {
 export const login = async (req, res) => {
   try {
     const { idToken } = req.body;
+    console.log("Login endpoint called with body:", req.body);
     const decoded = await admin.auth().verifyIdToken(idToken);
     const email = decoded.email;
     const name = decoded.name;
@@ -44,8 +45,8 @@ export const login = async (req, res) => {
     createCookie(res, token);
     return res.status(200).json({ msg: "account created and login success" });
   } catch (e) {
-    console.log(e);
-    return res.status(401).json({ msg: "login error" });
+    console.error("Login Error Details:", e);
+    return res.status(401).json({ msg: "login error", error: e.message });
   }
 };
 
