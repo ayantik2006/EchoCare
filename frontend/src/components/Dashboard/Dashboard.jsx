@@ -185,7 +185,7 @@ function Dashboard() {
           <div className="mt-5 text-neutral-500">No recent consultations</div>
         )}
         {consultations.length !== 0 && (
-          <div className="flex gap-8 flex-wrap items-center mt-5 pb-10">
+          <div className="flex gap-8 flex-wrap items-center mt-5 pb-50">
             {consultations.map((consultation, index) => {
               return (
                 <div
