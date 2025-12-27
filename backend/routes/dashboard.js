@@ -1,5 +1,5 @@
 import express from "express";
-import {getSoap, getConsultations, updateSoap, enhanceTranscript, editTitle} from "../controllers/dashboard.js"
+import {getSoap, getConsultations, updateSoap, enhanceTranscript, editTitle} from "../controllers/dashboard.js";
 
 const router=express.Router();
 

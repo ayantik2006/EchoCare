@@ -1,4 +1,3 @@
-import Account from "../models/Account.js";
 import Consultation from "../models/Consultation.js";
 import jwt from "jsonwebtoken";
 import axios from "axios";

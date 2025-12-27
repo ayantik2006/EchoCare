@@ -24,6 +24,7 @@ app.use(cors({
 app.use("/auth",auth);
 app.use("/dashboard",dashboard);
 
-app.listen(8080, () => {
+const PORT=8080;
+app.listen(PORT, () => {
   console.log("server live");
 });

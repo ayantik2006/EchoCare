@@ -36,7 +36,6 @@ function Working() {
     },
   ];
 
-  // Duplicate steps to create seamless loop
   const seamlessSteps = [...steps, ...steps];
 
   return (
@@ -48,7 +47,6 @@ function Working() {
       </div>
 
       <div className="relative w-full max-w-7xl mx-auto overflow-hidden p-8 br-[50px]">
-        {/* Left Blur Overlay */}
         <div
           className="absolute top-0 left-0 h-full w-24 md:w-48 z-20 pointer-events-none backdrop-blur-[2px]"
           style={{
@@ -57,7 +55,6 @@ function Working() {
           }}
         ></div>
 
-        {/* Right Blur Overlay */}
         <div
           className="absolute top-0 right-0 h-full w-24 md:w-48 z-20 pointer-events-none backdrop-blur-[2px]"
           style={{
@@ -73,9 +70,6 @@ function Working() {
               className="flex flex-col items-start gap-4 p-8 bg-white rounded-2xl border border-slate-100 shadow-xl relative overflow-hidden group hover:scale-105 transition-transform duration-300 w-[350px] shrink-0"
             >
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                {/* <span className={`text-8xl font-bold ${step.numberColor} leading-none -mr-4 -mt-4`}>
-                  {step.id}
-                </span> */}
               </div>
               <div className="flex gap-4 items-center relative z-10">
                 <div
