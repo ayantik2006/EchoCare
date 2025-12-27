@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Mic, FileText, Sparkles, FileStack, Stethoscope, Activity, FileAudio, FileCheck } from "lucide-react";
+import { Mic, FileText, Sparkles, FileStack, Stethoscope, Activity, FileAudio, FileCheck, Wand2, User, UserCheck, Play } from "lucide-react";
 
 function Working() {
   // --- Carousel Data ---
@@ -448,6 +448,41 @@ function Working() {
         </div>
       </div>
 
+      {/* --- DIARIZATION SECTION (TRANSCRIPT TO SPEECH) --- */}
+      <div className="max-w-6xl mx-auto px-6 mb-32">
+        <div className="bg-white/50 backdrop-blur-xl rounded-[3rem] p-8 md:p-12 border border-[#DBC6AE]/30 relative overflow-hidden">
+          {/* Background Blob */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#2E5674]/5 to-[#DBC6AE]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+          <div className="grid lg:grid-cols-2 gap-16 items-center relative z-10 text-left">
+
+            {/* Text Side (Left) */}
+            <div className="space-y-6 order-2 lg:order-1">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2E5674]/10 text-[#2E5674] font-bold text-sm">
+                <UserCheck size={16} />
+                <span>Speaker Diarization</span>
+              </div>
+              <DiarizationGraphics />
+              <h2 className="text-3xl md:text-4xl font-extrabold text-[#192E46] leading-tight">
+                Who said what? <br /> <span className="text-[#2E5674]">Perfectly Clear.</span>
+              </h2>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                EchoCare intelligently distinguishes between multiple speakers, separating doctor instructions from patient concerns with high precision.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Badge icon={<User size={14} />} text="Multi-Speaker" />
+                <Badge icon={<Wand2 size={14} />} text="Auto-Labeling" />
+              </div>
+            </div>
+
+            {/* Visual Side (Right - Animation) */}
+            <div className="order-1 lg:order-2">
+              <DiarizationDemo />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* --- STATISTICS SECTION --- */}
       <div className="max-w-6xl mx-auto px-6 mt-32 mb-20">
         <div className="grid md:grid-cols-2 gap-8">
@@ -466,7 +501,7 @@ function Working() {
         </div>
       </div>
 
-    </div>
+    </div >
   );
 }
 
@@ -539,7 +574,7 @@ function StatCard({ number, suffix, label, desc }) {
 
 function Badge({ icon, text }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white text-[#192E46] border border-[#192E46]/10 shadow-sm cursor-default hover:bg-[#F9FcfE] transition-colors">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white text-[#192E46] border border-[#192E46]/10 shadow-sm cursor-default hover:bg-[#DBC6AE]/20 transition-colors">
       {icon}
       {text}
     </span>
@@ -577,6 +612,127 @@ function VoiceToTextGraphics() {
         <div className="h-1 bg-[#192E46] rounded-full w-full animate-pulse"></div>
         <div className="h-1 bg-[#192E46] rounded-full w-[80%] animate-pulse delay-75"></div>
         <div className="h-1 bg-[#192E46] rounded-full w-[90%] animate-pulse delay-150"></div>
+      </div>
+    </div>
+  );
+}
+
+function DiarizationDemo() {
+  const [step, setStep] = useState(0); // 0: Raw, 1: Processing, 2: Diarized
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStep(prev => (prev === 2 ? 0 : prev + 1));
+    }, 4000); // Change state every 4 seconds
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="relative mx-auto max-w-sm h-[320px] bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden flex flex-col">
+      {/* Fake Browser Header */}
+      <div className="h-12 border-b border-gray-100 flex items-center justify-between px-4 bg-white z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-[#F0F7FF] flex items-center justify-center text-[#2E5674] font-bold">
+            Tr
+          </div>
+          <span className="font-bold text-[#192E46]">Transcript</span>
+        </div>
+        <button className="text-xs font-medium text-white bg-[#2E5674] px-3 py-1.5 rounded-lg hover:bg-[#192E46] transition-colors cursor-default shadow-sm">
+          Re-Enhance
+        </button>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 p-5 relative overflow-hidden">
+        {/* Checkbox Header */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${step === 2 ? 'bg-[#2E5674] border-[#2E5674]' : 'border-gray-300'}`}>
+            {step === 2 && <FileCheck size={10} className="text-white" />}
+          </div>
+          <span className="text-xs font-semibold text-[#192E46]">Show AI Enhanced Version</span>
+        </div>
+
+        {/* State 0: Raw Text */}
+        <div className={`absolute top-14 left-5 right-5 transition-all duration-700 ${step === 0 ? 'opacity-100 translate-y-0 blur-none' : 'opacity-0 -translate-y-4 blur-sm'}`}>
+          <p className="text-sm text-gray-600 leading-relaxed font-mono">
+            hello doctor I am having a mild fever and nausea for the last couple of days okay I understand I prescribe you this medicine and I prefer you to have some sleep even take some rest a fever and nausea comes back when make sure you visit once more thank you thank you doctor
+          </p>
+        </div>
+
+        {/* State 1: Processing Overlay */}
+        <div className={`absolute inset-0 bg-white/80 z-20 flex items-center justify-center flex-col gap-3 transition-opacity duration-500 ${step === 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <div className="w-12 h-12 rounded-full border-4 border-[#DBC6AE]/30 border-t-[#2E5674] animate-spin"></div>
+          <span className="text-sm font-bold text-[#2E5674] animate-pulse">Analysing Speakers...</span>
+        </div>
+
+        {/* State 2: Diarized View */}
+        <div className={`absolute top-14 left-5 right-5 flex flex-col gap-3 transition-all duration-700 ${step === 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          {/* Patient Bubble */}
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center text-xs font-bold text-gray-500">P</div>
+            <div className="bg-gray-50 rounded-2xl rounded-tl-none p-3 text-xs text-gray-700 border border-gray-100">
+              Hello doctor, I am having a mild fever and nausea...
+            </div>
+          </div>
+          {/* Doctor Bubble */}
+          <div className="flex gap-3 flex-row-reverse">
+            <div className="w-8 h-8 rounded-full bg-[#EBF5FF] flex-shrink-0 flex items-center justify-center text-xs font-bold text-[#2E5674]">D</div>
+            <div className="bg-[#EBF5FF] rounded-2xl rounded-tr-none p-3 text-xs text-[#192E46] border border-[#dcecfc]">
+              Okay, I understand. I prescribe you this medicine...
+            </div>
+          </div>
+          {/* Patient Bubble */}
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center text-xs font-bold text-gray-500">P</div>
+            <div className="bg-gray-50 rounded-2xl rounded-tl-none p-3 text-xs text-gray-700 border border-gray-100">
+              Thank you doctor.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function DiarizationGraphics() {
+  return (
+    <div className="flex items-center gap-4 mb-4 select-none">
+      {/* Input: Mixed Audio */}
+      <div className="flex items-center gap-1 h-8">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="w-1.5 bg-gray-400 rounded-full animate-bounce-custom"
+            style={{
+              height: '40%',
+              animationDelay: `${i * 0.1}s`,
+              animationDuration: '1.5s'
+            }}
+          ></div>
+        ))}
+      </div>
+
+      {/* Arrow */}
+      <div className="text-[#DBC6AE]">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14" />
+          <path d="M12 5l7 7-7 7" />
+        </svg>
+      </div>
+
+      {/* Output: Separated Speakers */}
+      <div className="flex flex-col gap-2 justify-center">
+        {/* Speaker 1 */}
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#2E5674]"></div>
+          <div className="h-1 bg-[#2E5674]/50 rounded-full w-8 animate-pulse"></div>
+        </div>
+        {/* Speaker 2 */}
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+          <div className="h-1 bg-gray-400/50 rounded-full w-6 animate-pulse delay-75"></div>
+        </div>
       </div>
     </div>
   );
