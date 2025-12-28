@@ -8,6 +8,7 @@ const schema = new mongoose.Schema({
   duration: { type: String, default: 0 },
   date: { type: String, default: "" },
   title: { type: String, default: "" },
+  sharedwith: { type: Array, default: [] },
 });
 
 export default mongoose.model("Consultation", schema);

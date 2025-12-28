@@ -10,7 +10,6 @@ import {
   Sparkles,
   Search,
   Users,
-  Bell,
   Pencil,
   Trash2,
   Menu,
@@ -19,6 +18,11 @@ import {
   LayoutGrid,
   Clock,
   FileText,
+  ExternalLink,
+  Share,
+  Share2,
+  Copy,
+  Inbox,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { Toaster } from "react-hot-toast";
@@ -36,6 +40,7 @@ function Dashboard() {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [docName, setDocName] = useState("");
   const [consultations, setConsultations] = useState([]);
+  const [sharedConsultations, setSharedConsultations] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [transcriptValue, setTranscriptValue] = useState("");
   const recognitionRef = useRef(null);
@@ -61,6 +66,9 @@ function Dashboard() {
   const [confirmationDeleteId, setConfirmationDeleteId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isSharing,setIsSharing]=useState(false);
+  const [sharingId,setSharingId]=useState("");
   const soapContentRef = useRef(null);
 
   useEffect(() => {
@@ -83,6 +91,19 @@ function Dashboard() {
       )
       .then((res) => {
         setConsultations(res.data.consultations);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+
+    axios
+      .post(
+        BACKEND_URL + "/dashboard/get-shared-consultations",
+        {},
+        { withCredentials: true }
+      )
+      .then((res) => {
+        setSharedConsultations(res.data.consultations);
       })
       .catch((e) => {
         console.log(e);
@@ -164,7 +185,7 @@ function Dashboard() {
     const colors = [
       "bg-[#DBC6AE]/20 border border-[#DBC6AE]/30 hover:bg-[#DBC6AE]/30",
       "bg-[#F0F7FF]/60 border border-[#2E5674]/20 hover:bg-[#2E5674]/10",
-      "bg-white/40 border border-[#192E46]/10 hover:bg-white/60"
+      "bg-white/40 border border-[#192E46]/10 hover:bg-white/60",
     ];
     return colors[index % colors.length];
   };
@@ -220,6 +241,15 @@ function Dashboard() {
     }
   };
 
+  const displayedConsultations =
+    activeTab === "shared_with_me"
+      ? sharedConsultations
+      : activeTab === "shared_by_me"
+      ? consultations.filter((c) => c.sharedwith && c.sharedwith.length > 0)
+      : consultations;
+
+  const isReadOnly = activeTab === "shared_with_me";
+
   return (
     <div className="flex w-full min-h-screen bg-[#F9FcfE] [background-image:radial-gradient(#2E5674_1px,transparent_1px)] [background-size:48px_48px] font-sans selection:bg-[#DBC6AE] selection:text-[#192E46]">
       <Toaster position="top-center" reverseOrder={false} />
@@ -262,10 +292,11 @@ function Dashboard() {
                   setActiveTab("dashboard");
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === "dashboard"
-                  ? "text-[#2E5674] font-bold bg-blue-50/50"
-                  : "text-gray-600"
-                  }`}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
+                  activeTab === "dashboard"
+                    ? "text-[#2E5674] font-bold bg-blue-50/50"
+                    : "text-gray-600"
+                }`}
               >
                 <LayoutGrid size={18} />
                 Dashboard
@@ -275,13 +306,42 @@ function Dashboard() {
                   setActiveTab("calendar");
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === "calendar"
-                  ? "text-[#2E5674] font-bold bg-blue-50/50"
-                  : "text-gray-600"
-                  }`}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
+                  activeTab === "calendar"
+                    ? "text-[#2E5674] font-bold bg-blue-50/50"
+                    : "text-gray-600"
+                }`}
               >
                 <Calendar size={18} />
                 Calendar
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("shared_with_me");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
+                  activeTab === "shared_with_me"
+                    ? "text-[#2E5674] font-bold bg-blue-50/50"
+                    : "text-gray-600"
+                }`}
+              >
+                <Inbox size={18} />
+                Shared with me
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("shared_by_me");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
+                  activeTab === "shared_by_me"
+                    ? "text-[#2E5674] font-bold bg-blue-50/50"
+                    : "text-gray-600"
+                }`}
+              >
+                <Share2 size={18} />
+                Shared with other doctor
               </button>
               <div className="h-px bg-gray-100 my-1"></div>
               <button
@@ -298,22 +358,24 @@ function Dashboard() {
         <div className="flex gap-8 lg:flex-row flex-col flex-grow overflow-hidden relative">
           {/* Left Column: Banner, Transcript, Consultations */}
           <div
-            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === "dashboard"
-              ? "lg:w-[65%] opacity-100 translate-x-0"
-              : activeTab === "sessions"
+            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
+              activeTab === "dashboard"
+                ? "lg:w-[65%] opacity-100 translate-x-0"
+                : ["sessions", "shared_with_me", "shared_by_me"].includes(activeTab)
                 ? "w-full opacity-100 translate-x-0"
                 : "w-0 opacity-0 -translate-x-[100%] overflow-hidden"
-              }`}
+            }`}
           >
             {/* Fixed Top Section */}
             <div className="shrink-0">
               {/* Start Consultation Banner - Collapses in Sessions mode */}
               {/* Start Consultation Banner - Collapses in Sessions mode */}
               <div
-                className={`w-full bg-gradient-to-r from-[#2E5674] to-[#192E46] rounded-3xl flex items-center gap-4 shadow-lg shadow-[#2E5674]/20 transition-all duration-500 ease-in-out hover:scale-[1.01] hover:shadow-xl hover:shadow-[#2E5674]/30 cursor-pointer shrink-0 overflow-hidden relative z-10 ${activeTab === "sessions"
-                  ? "h-0 p-0 mb-0 opacity-0"
-                  : "p-6 mb-8 h-auto opacity-100"
-                  }`}
+                className={`w-full bg-gradient-to-r from-[#2E5674] to-[#192E46] rounded-3xl flex items-center gap-4 shadow-lg shadow-[#2E5674]/20 transition-all duration-300 ease-in-out hover:shadow-2xl hover:shadow-[#2E5674]/40 border border-transparent hover:border-white/30 active:scale-[0.99] cursor-pointer shrink-0 overflow-hidden relative z-10 ${
+                  ["sessions", "shared_with_me", "shared_by_me"].includes(activeTab)
+                    ? "h-0 p-0 mb-0 opacity-0"
+                    : "p-6 mb-8 h-auto opacity-100"
+                }`}
                 onClick={handleStartConsultationClick}
               >
                 <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner shrink-0 border border-white/20">
@@ -323,18 +385,20 @@ function Dashboard() {
                     <div className="w-6 h-6 bg-[#DBC6AE] rounded-full animate-pulse shadow-[0_0_15px_rgba(219,198,174,0.6)]"></div>
                   )}
                 </div>
-                <div className="flex flex-col text-white whitespace-nowrap">
-                  <h2 className="text-2xl [@media(max-width:413px)]:text-[1rem] font-bold tracking-tight">
+                <div className="flex flex-col text-white min-w-0 flex-1">
+                  <h2 className="text-2xl [@media(max-width:413px)]:text-[1rem] font-bold tracking-tight truncate">
                     {isRecording ? "Listening..." : "Start New Consultation"}
                   </h2>
-                  <p className="text-white/70 text-sm font-medium">
-                    {isRecording ? "Click to stop and generate SOAP note" : "Tap here to begin recording"}
+                  <p className="text-white/70 text-sm font-medium truncate">
+                    {isRecording
+                      ? "Click to stop and generate SOAP note"
+                      : "Tap here to begin recording"}
                   </p>
                 </div>
                 {isRecording && (
                   <button
                     onClick={handleCancelConsultation}
-                    className="ml-auto p-3 bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-2xl transition-all mr-2 backdrop-blur-sm border border-red-500/30"
+                    className="shrink-0 p-3 bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-2xl transition-all backdrop-blur-sm border border-red-500/30"
                     title="Cancel Consultation"
                   >
                     <X size={24} />
@@ -344,24 +408,31 @@ function Dashboard() {
 
               {/* Transcript Live View */}
               <div
-                className={`rounded-3xl duration-300 bg-white/40 backdrop-blur-md overflow-hidden shadow-sm shrink-0 border border-white/60 ${!isRecording
-                  ? "h-0 p-0 mt-0 opacity-0 border-0"
-                  : "h-[12rem] p-6 opacity-100 mb-8"
-                  }`}
+                className={`rounded-3xl ml-1 duration-300 bg-white/40 backdrop-blur-md overflow-hidden shadow-sm shrink-0 border border-white/60 ${
+                  !isRecording
+                    ? "h-0 p-0 mt-0 opacity-0 border-0"
+                    : "h-[12rem] p-6 opacity-100 mb-8"
+                }`}
               >
                 <div className="text-[#2E5674] mb-3 font-bold flex items-center gap-2">
                   <Sparkles size={16} />
                   Live Transcription
                 </div>
-                <div className="text-[#192E46] font-medium leading-relaxed opacity-80 h-full overflow-y-auto pr-2 custom-scrollbar">{transcriptValue}</div>
+                <div className="text-[#192E46] font-medium leading-relaxed opacity-80 h-full overflow-y-auto pr-2 custom-scrollbar">
+                  {transcriptValue}
+                </div>
               </div>
 
               <h2 className="text-2xl font-bold text-[#192E46] mb-6 shrink-0 tracking-tight">
-                Recent Consultations
+                {activeTab === "shared_with_me"
+                  ? "Shared With Me"
+                  : activeTab === "shared_by_me"
+                  ? "Shared With Others"
+                  : "Recent Consultations"}
               </h2>
 
               {/* Search Bar */}
-              <div className="relative mb-8 shrink-0 group">
+              <div className="relative mb-8 shrink-0 group ml-1">
                 <Search
                   className="absolute left-5 top-1/2 transform -translate-y-1/2 text-[#2E5674]/50 group-focus-within:text-[#2E5674] transition-colors"
                   size={20}
@@ -379,18 +450,18 @@ function Dashboard() {
             {/* Scrollable Consultation List */}
             <div className="flex-grow overflow-y-auto pr-2 pb-10">
               <div className="flex flex-col gap-4">
-                {consultations.filter((c) =>
+                {displayedConsultations?.filter((c) =>
                   (c.title || "")
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase())
                 ).length === 0 && (
-                    <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
-                      {searchQuery
-                        ? "No matching consultations found."
-                        : "No recent consultations found."}
-                    </div>
-                  )}
-                {consultations
+                  <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
+                    {searchQuery
+                      ? "No matching consultations found."
+                      : "No recent consultations found."}
+                  </div>
+                )}
+                {displayedConsultations
                   .filter((c) =>
                     (c.title || "")
                       .toLowerCase()
@@ -401,19 +472,42 @@ function Dashboard() {
                       key={index}
                       className={`p-6 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 ${getCardColor(
                         index
-                      )} relative group backdrop-blur-sm`}
+                      )} relative backdrop-blur-sm`}
                     >
-                      <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) =>
-                            handleDeleteConsultation(consultation._id, e)
-                          }
-                          className="p-2 rounded-full hover:bg-red-50 text-red-300 hover:text-red-500 transition-colors"
-                          title="Delete Consultation"
-                          disabled={isDeleting}
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                      <div className="absolute top-4 right-4 z-10 opacity-0 opacity-100 transition-opacity flex items-center gap-4">
+                        {!isReadOnly && (
+                          <>
+                            <button
+                              className="flex items-center gap-1 text-[0.9rem] cursor-pointer"
+                              title="Share with a Doctor"
+                              onClick={() => {
+                                setIsShareModalOpen(true);
+                                setSharingId(consultation._id);
+                              }}
+                            >
+                              <Share2
+                                size={12}
+                                className="stroke-neutral-500"
+                              />
+                              <p className="text-neutral-500">Share</p>
+                              {consultation.sharedwith.length !== 0 && (
+                                <div className="text-[0.8rem] mb-2 bg-red-400 rounded-full text-white w-4 h-4 flex items-center justify-center">
+                                  {consultation.sharedwith.length}
+                                </div>
+                              )}
+                            </button>
+                            <button
+                              onClick={(e) =>
+                                handleDeleteConsultation(consultation._id, e)
+                              }
+                              className="p-2 rounded-full hover:bg-red-50 text-red-300 hover:text-red-500 transition-colors"
+                              title="Delete Consultation"
+                              disabled={isDeleting}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </>
+                        )}
                       </div>
                       <div className="flex items-center justify-between mb-2">
                         <h3
@@ -422,27 +516,43 @@ function Dashboard() {
                           )} flex items-center gap-2`}
                         >
                           {consultation.title || `Session ${consultation.date}`}
-                          <Pencil
-                            size={14}
-                            className={`cursor-pointer opacity-40 hover:opacity-100 transition-opacity text-[#2E5674]`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsEditTitleDialogOpen(true);
-                              setTitleEditId(consultation._id);
-                              setDefaultTitleValue(consultation.title);
-                            }}
-                          />
+                          {!isReadOnly && (
+                            <Pencil
+                              size={14}
+                              className={`cursor-pointer opacity-40 hover:opacity-100 transition-opacity text-[#2E5674]`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsEditTitleDialogOpen(true);
+                                setTitleEditId(consultation._id);
+                                setDefaultTitleValue(consultation.title);
+                              }}
+                            />
+                          )}
                         </h3>
                       </div>
-                      <div className={`text-sm mb-5 font-medium flex items-center gap-3 ${getSubTextColor(index)}`}>
+                      <div
+                        className={`text-sm mb-5 font-medium flex items-center flex-wrap gap-3 ${getSubTextColor(
+                          index
+                        )}`}
+                      >
                         <div className="flex items-center gap-1 bg-white/50 px-2 py-1 rounded-lg">
                           <Calendar size={12} /> {consultation.date}
                         </div>
                         <div className="flex items-center gap-1 bg-white/50 px-2 py-1 rounded-lg">
                           <Clock size={12} /> {consultation.duration}
                         </div>
+                        {activeTab === "shared_with_me" && (
+                          <div className="flex items-center gap-1 bg-white/50 px-2 py-1 rounded-lg text-xs">
+                            <span className="font-bold">Owner:</span> {consultation.email}
+                          </div>
+                        )}
+                         {activeTab === "shared_by_me" && (
+                          <div className="flex items-center gap-1 bg-white/50 px-2 py-1 rounded-lg text-xs w-fit" title={consultation.sharedwith.join(", ")}>
+                            <span className="font-bold">Shared with:</span> {consultation.sharedwith.join(", ")}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex gap-3">
+                      <div className="flex [@media(max-width:405px)]:flex-col gap-3">
                         <button
                           className="flex-1 bg-[#192E46] text-white hover:bg-[#2E5674] px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
                           onClick={() => {
@@ -469,6 +579,28 @@ function Dashboard() {
                           <Users size={16} /> Transcript
                         </button>
                       </div>
+                      {isReadOnly && (
+                        <button
+                          className="mt-3 w-full bg-[#DBC6AE] text-[#192E46] hover:bg-[#C9B39A] px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const res = await axios.post(
+                                BACKEND_URL + "/dashboard/copy-consultation",
+                                { id: consultation._id },
+                                { withCredentials: true }
+                              );
+                              setConsultations(res.data.consultations);
+                              toast.success("Consultation copied successfully");
+                            } catch (e) {
+                              console.error(e);
+                              toast.error("Failed to copy consultation");
+                            }
+                          }}
+                        >
+                          <Copy size={16} /> Create Copy
+                        </button>
+                      )}
                     </div>
                   ))}
               </div>
@@ -477,12 +609,13 @@ function Dashboard() {
 
           {/* Calendar Section (Right Column) */}
           <div
-            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === "dashboard"
-              ? "lg:w-[35%] opacity-100 translate-x-0"
-              : activeTab === "calendar"
+            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
+              activeTab === "dashboard"
+                ? "lg:w-[35%] opacity-100 translate-x-0"
+                : activeTab === "calendar"
                 ? "w-full opacity-100 translate-x-0"
                 : "w-0 opacity-0 translate-x-[100%] overflow-hidden"
-              }`}
+            }`}
           >
             <DashboardCalendar
               consultations={consultations}
@@ -509,10 +642,11 @@ function Dashboard() {
             <div className="flex flex-wrap gap-2 items-center justify-between mb-2 pr-12">
               <h2 className="text-2xl font-bold text-[#192E46]">Transcript</h2>
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${isAIEnhancing
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                  }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  isAIEnhancing
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                }`}
                 onClick={async () => {
                   if (isAIEnhancing) return;
                   try {
@@ -539,7 +673,7 @@ function Dashboard() {
             </div>
 
             <p className="text-gray-400 text-sm italic mb-6 border-b border-gray-100 pb-4">
-              (This transcript is auto-generated from speech and may contain
+              (This transcript is generated from speech using EchoCare AI and may contain
               inaccuracies)
             </p>
 
@@ -589,9 +723,11 @@ function Dashboard() {
 
             <div className="flex flex-wrap gap-2 items-center justify-between mb-6 pr-12">
               <div className="flex flex-wrap gap-3">
-                <button
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+            {!isReadOnly && (
+              <button
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${
+                    isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   onClick={async () => {
                     if (!isSoapEditable) {
                       soapContentRef.current.focus();
@@ -628,9 +764,10 @@ function Dashboard() {
                   {isSoapEditable
                     ? "Save Edits"
                     : isSoapSaving
-                      ? "Saving..."
-                      : "Edit Mode"}
+                    ? "Saving..."
+                    : "Edit Mode"}
                 </button>
+            )}
                 <button
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E5674] text-white hover:bg-[#192E46] transition-all"
                   onClick={() => {
@@ -663,8 +800,9 @@ function Dashboard() {
             <div className="flex-grow overflow-y-auto bg-white rounded-xl border border-gray-100 shadow-inner">
               <pre
                 id="soap-note-content"
-                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${isSoapEditable ? "bg-blue-50/50" : ""
-                  }`}
+                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${
+                  isSoapEditable ? "bg-blue-50/50" : ""
+                }`}
                 contentEditable={isSoapEditable}
                 suppressContentEditableWarning
                 ref={soapContentRef}
@@ -740,8 +878,9 @@ function Dashboard() {
           <button
             type="submit"
             form="edit-title-form"
-            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${isTitleSaving ? "opacity-70 pointer-events-none" : ""
-              }`}
+            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${
+              isTitleSaving ? "opacity-70 pointer-events-none" : ""
+            }`}
           >
             {isTitleSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -774,10 +913,78 @@ function Dashboard() {
           </button>
           <button
             onClick={confirmDelete}
-            className={`px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors ${isDeleting ? "opacity-70 pointer-events-none" : ""
-              }`}
+            className={`px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors ${
+              isDeleting ? "opacity-70 pointer-events-none" : ""
+            }`}
           >
             {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        PaperProps={{
+          style: { borderRadius: "1rem", padding: "1rem" },
+        }}
+      >
+        <DialogTitle className="font-bold text-[#192E46]">
+          Share Consulation in Read-Only mode
+        </DialogTitle>
+        <DialogContent>
+            Enter the email address of the doctor you want to share with. <br />
+            <p className="text-[0.9rem] pt-1 text-neutral-400">
+              Note: The doctor must have an account in EchoCare AI
+            </p>
+        </DialogContent>
+        <DialogActions className="px-6 pb-4 mb-3">
+          <form className="flex gap-1 w-full"
+          onSubmit={async (e)=>{
+            e.preventDefault();
+            setIsSharing(true);
+            const receiverEmail=e.currentTarget[0].value;
+            try{
+              const res=await axios.post(BACKEND_URL+"/dashboard/share",{id:sharingId,receiverEmail:receiverEmail},{withCredentials:true});
+              setConsultations(res.data.consultations);
+              toast.success("Consultation shared in read-only mode!");
+              setIsSharing(false);
+              setIsShareModalOpen(false);
+            }
+            catch(e){
+              setIsSharing(false);
+              if(e.response.status===405){
+                toast.error("You are already the owner!");
+              }
+              else if(e.response.status===404){
+                toast.error("This email doesn't have an account in EchoCare AI!");
+              }
+              else if(e.response.status===409){
+                toast.error("This email already have read-only access!");
+              }
+            }
+          }}>
+            <input
+              type="text"
+              className="border outline-none px-3 py-[0.35rem] rounded-md w-full ml-4 mr-1"
+              placeholder="Email"
+              typeof="email"
+              required
+            />
+            <button
+              className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:bg-[#24435b] transition-colors ${
+                isSharing ? "opacity-70 pointer-events-none" : ""
+              }`}
+              type="submit"
+            >
+              {isSharing ? "Sharing..." : "Share"}
+            </button>
+          </form>
+          <button
+            onClick={() => setIsShareModalOpen(false)}
+            className="px-4 py-2 text-gray-500 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Cancel
           </button>
         </DialogActions>
       </Dialog>

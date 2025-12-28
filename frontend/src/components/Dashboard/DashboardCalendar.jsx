@@ -31,6 +31,13 @@ function DashboardCalendar({ consultations = [], isExpanded = false }) {
         return consultations.filter(c => c.date === targetDateStr).length;
     };
 
+    // Filter consultations for the current month
+    const currentMonthConsultations = consultations.filter(c => {
+        if (!c.date) return false;
+        const [_, m, y] = c.date.split('/');
+        return parseInt(m) === month + 1 && parseInt(y) === year;
+    });
+
     const getAppointmentColor = (count) => {
         if (count === 0) return "";
         if (count > 2) return "bg-[#2E5674]"; // Medium Blue for high activity
@@ -102,9 +109,11 @@ function DashboardCalendar({ consultations = [], isExpanded = false }) {
                         </button>
                     </div>
                 </div>
-                <span className={`font-semibold px-3 py-1 bg-white/50 rounded-full text-[#2E5674] shadow-sm ${isExpanded ? 'text-sm' : 'text-[0.65rem]'}`}>
-                    {consultations.length} Appts
-                </span>
+                {currentMonthConsultations.length > 0 && (
+                    <span className={`font-semibold px-3 py-1 bg-white/50 rounded-full text-[#2E5674] shadow-sm ${isExpanded ? 'text-sm' : 'text-[0.65rem]'}`}>
+                        {currentMonthConsultations.length} Appts
+                    </span>
+                )}
             </div>
 
             {/* Day Names Header */}
@@ -129,6 +138,12 @@ function DashboardCalendar({ consultations = [], isExpanded = false }) {
 
                                     <div className={`w-full h-full flex items-center justify-center rounded-xl relative transition-all ${colorClass} ${colorClass ? "text-white font-bold shadow-md scale-105" : "text-[#192E46] hover:bg-white/40"}`}>
                                         {day}
+                                        {/* Visible Count Badge - Mobile Friendly */}
+                                        {count > 0 && (
+                                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-400 text-white text-[0.6rem] flex items-center justify-center shadow-sm border border-white">
+                                                {count}
+                                            </div>
+                                        )}
                                         {/* Hover Tooltip - Only visible if expanded and has consultations */}
                                         {isExpanded && count > 0 && (
                                             <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-[#192E46] text-white text-xs py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-xl">

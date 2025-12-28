@@ -24,7 +24,6 @@ const deleteCookie = async (res) => {
 export const login = async (req, res) => {
   try {
     const { idToken } = req.body;
-    console.log("Login endpoint called with body:", req.body);
     const decoded = await admin.auth().verifyIdToken(idToken);
     const email = decoded.email;
     const name = decoded.name;

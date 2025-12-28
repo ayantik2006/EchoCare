@@ -1,4 +1,5 @@
 import Consultation from "../models/Consultation.js";
+import Account from "../models/Account.js";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import humanizeDuration from "humanize-duration";
@@ -6,9 +7,53 @@ import humanizeDuration from "humanize-duration";
 export const getConsultations = async (req, res) => {
   const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
   const consultationData = await Consultation.find({ email: email });
+
+  // Lazy Migration: Sync sharedwith field with actual shared accounts
+  for (let i = 0; i < consultationData.length; i++) {
+    const consultation = consultationData[i];
+    
+    // Find all accounts that have this consultation in their sharedWithMe list
+    // Note: This relies on the Account model being the source of truth for access
+    const sharedAccounts = await Account.find({ sharedWithMe: consultation._id.toString() });
+    
+    // Extract emails
+    const correctSharedWith = sharedAccounts.map(acc => acc.email);
+    
+    // Check if update is needed (simple stringify comparison for arrays)
+    const currentSharedWith = Array.isArray(consultation.sharedwith) ? consultation.sharedwith : [];
+    
+    // Sort to ensure order doesn't affect comparison
+    const sortedCurrent = [...currentSharedWith].sort();
+    const sortedCorrect = [...correctSharedWith].sort();
+    
+    if (JSON.stringify(sortedCurrent) !== JSON.stringify(sortedCorrect)) {
+       console.log(`Migrating sharedwith for consultation ${consultation._id}`);
+       await Consultation.updateOne({ _id: consultation._id }, { sharedwith: correctSharedWith });
+       // Update the local object so the response is correct immediately
+       consultation.sharedwith = correctSharedWith;
+    }
+  }
+
   return res
     .status(200)
     .json({ consultations: [...consultationData].reverse() });
+};
+
+export const getSharedConsultations = async (req, res) => {
+  const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
+  const userAccount = await Account.findOne({ email: email });
+  if (!userAccount) {
+    return res.status(404).json({ msg: "User account not found" });
+  }
+
+  const sharedConsultationIds = userAccount.sharedWithMe;
+  const sharedConsultations = await Consultation.find({
+    _id: { $in: sharedConsultationIds },
+  });
+
+  return res
+    .status(200)
+    .json({ consultations: [...sharedConsultations].reverse() });
 };
 
 export const getSoap = async (req, res) => {
@@ -220,4 +265,68 @@ export const deleteConsultation = async (req, res) => {
       msg: "consultation deleted",
       consultations: [...consultations].reverse(),
     });
+};
+
+export const share=async(req,res)=>{
+  const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
+  const {id,receiverEmail}=req.body;
+  if(receiverEmail===email){
+    return res.status(405).json({msg:"owner and receiver same"});
+  }
+  const receiverEmailData=await Account.findOne({email:receiverEmail});
+  if(!receiverEmailData){
+     return res.status(404).json({msg:"receiver email not  found"});
+  }
+  let sharedWithMe=[...receiverEmailData.sharedWithMe];
+  if(sharedWithMe.includes(id)) {
+    return res.status(409).json({msg:"already shared"});
+  }
+  sharedWithMe.push(id);
+  await Account.updateOne({email:receiverEmail},{sharedWithMe:sharedWithMe});
+
+  const userData=await Account.findOne({email:email});
+  let sharedWithOther=[...userData.sharedWithOther];
+  sharedWithOther.push(id);
+  await Account.updateOne({email:email},{sharedWithOther:sharedWithOther});
+  
+  let consultationData=await Consultation.findOne({_id:id});
+  const sharedWith=[...consultationData.sharedwith];
+  sharedWith.push(receiverEmail);
+  await Consultation.updateOne({_id:id},{sharedwith:sharedWith});
+  const consultations=await Consultation.find({email:email});
+  
+  return res.status(200).json({msg:"shared sucess", consultations:[...consultations].reverse()});
+}
+
+export const copyConsultation = async (req, res) => {
+  try {
+    const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
+    const { id } = req.body;
+
+    const originalConsultation = await Consultation.findById(id);
+    if (!originalConsultation) {
+      return res.status(404).json({ msg: "Consultation not found" });
+    }
+
+    const date = new Date().toLocaleDateString("en-IN");
+    await Consultation.create({
+      email: email,
+      title: originalConsultation.title,
+      transcription: originalConsultation.transcription,
+      soap: originalConsultation.soap,
+      date: date,
+      duration: originalConsultation.duration,
+      AITranscription: originalConsultation.AITranscription,
+      sharedwith: [], 
+    });
+
+    const consultations = await Consultation.find({ email: email });
+    return res.status(200).json({
+      msg: "Consultation copied successfully",
+      consultations: [...consultations].reverse(),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: "Failed to copy consultation" });
+  }
 };

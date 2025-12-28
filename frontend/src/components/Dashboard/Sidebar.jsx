@@ -1,4 +1,4 @@
-import { LayoutGrid, Clock, Calendar, FileText, Settings, Rocket, LogOut } from "lucide-react";
+import { LayoutGrid, Clock, Calendar, FileText, Settings, Rocket, LogOut, Inbox, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +23,8 @@ function Sidebar({ docName, activeTab, setActiveTab }) {
         { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
         { id: 'sessions', label: 'Sessions', icon: Clock },
         { id: 'calendar', label: 'Calendar', icon: Calendar },
+        { id: 'shared_with_me', label: 'Shared with me', icon: Inbox },
+        { id: 'shared_by_me', label: 'Shared with other doctor', icon: Share2 },
     ];
 
     return (
@@ -64,13 +66,12 @@ function Sidebar({ docName, activeTab, setActiveTab }) {
 
                 {/* User Profile */}
                 <div className="mt-auto pt-6 border-t border-white/10">
-                    <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group">
+                    <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/10 transition-colors group">
                         <div className="w-12 h-12 rounded-xl bg-[#DBC6AE] flex items-center justify-center overflow-hidden text-[#192E46] font-bold text-xl shadow-inner shrink-0">
                             {docName ? docName.charAt(0).toUpperCase() : "?"}
                         </div>
                         <div className="flex flex-col overflow-hidden text-white">
                             <span className="font-semibold text-sm truncate w-[9rem] tracking-wide" title={`Dr. ${docName}`}>Dr. {docName || "Loading..."}</span>
-                            <span className="text-xs text-gray-400 font-medium">View Profile</span>
                         </div>
                         <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="ml-auto p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors" title="Logout">
                             <LogOut size={18} />
