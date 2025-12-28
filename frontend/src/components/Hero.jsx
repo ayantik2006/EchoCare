@@ -81,10 +81,7 @@ function Hero() {
           {!isLoggingIn ? "Continue with Google" : "Logging you in..."}
         </span>
       </button>
-      <p className="text-[#192E46]/60 text-xs font-medium mt-2 flex items-center gap-2 px-4">
-        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-        EchoCare is designed with HIPAA-aligned privacy and security principles
-      </p>
+      
     </div>
   );
 }

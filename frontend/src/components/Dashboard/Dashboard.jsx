@@ -17,6 +17,8 @@ import {
   Calendar,
   LogOut,
   LayoutGrid,
+  Clock,
+  FileText,
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { Toaster } from "react-hot-toast";
@@ -158,18 +160,22 @@ function Dashboard() {
   };
 
   const getCardColor = (index) => {
-    const colors = ["bg-[#DBC6AE]", "bg-[#2E5674]", "bg-[#192E46]"];
+    // Glassy variants of the theme colors
+    const colors = [
+      "bg-[#DBC6AE]/20 border border-[#DBC6AE]/30 hover:bg-[#DBC6AE]/30",
+      "bg-[#F0F7FF]/60 border border-[#2E5674]/20 hover:bg-[#2E5674]/10",
+      "bg-white/40 border border-[#192E46]/10 hover:bg-white/60"
+    ];
     return colors[index % colors.length];
   };
 
   const getTextColor = (index) => {
-    // Index 0 (Beige) gets dark text, others (Blues) get white text
-    return index % 3 === 0 ? "text-black" : "text-white";
+    // All text dark due to light glass/white backgrounds
+    return "text-[#192E46]";
   };
 
   const getSubTextColor = (index) => {
-    // Index 0 (Beige) gets dark text, others (Blues) get whitish text
-    return index % 3 === 0 ? "text-black/70" : "text-gray-200";
+    return "text-[#192E46]/60";
   };
 
   const handleDeleteConsultation = (id, e) => {
@@ -215,7 +221,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex w-full min-h-screen bg-[#F0EBE0] font-sans">
+    <div className="flex w-full min-h-screen bg-[#F9FcfE] [background-image:radial-gradient(#2E5674_1px,transparent_1px)] [background-size:48px_48px] font-sans selection:bg-[#DBC6AE] selection:text-[#192E46]">
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* Sidebar */}
@@ -226,7 +232,10 @@ function Dashboard() {
       />
 
       {/* Main Content */}
-      <div className="flex-grow p-8 px-10 h-screen flex flex-col overflow-hidden">
+      <div className="flex-grow p-8 px-10 h-screen flex flex-col overflow-hidden bg-[#FDFBF7]/60 backdrop-blur-2xl lg:rounded-l-[3rem] border-l border-white/50 shadow-2xl relative">
+        {/* Background Blob for Main Content */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-[#2E5674]/5 to-[#DBC6AE]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none z-0"></div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6 shrink-0 relative z-20">
           <h1 className="text-[2rem] font-bold text-[#192E46] flex items-center gap-3">
@@ -253,11 +262,10 @@ function Dashboard() {
                   setActiveTab("dashboard");
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
-                  activeTab === "dashboard"
-                    ? "text-[#2E5674] font-bold bg-blue-50/50"
-                    : "text-gray-600"
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === "dashboard"
+                  ? "text-[#2E5674] font-bold bg-blue-50/50"
+                  : "text-gray-600"
+                  }`}
               >
                 <LayoutGrid size={18} />
                 Dashboard
@@ -267,11 +275,10 @@ function Dashboard() {
                   setActiveTab("calendar");
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
-                  activeTab === "calendar"
-                    ? "text-[#2E5674] font-bold bg-blue-50/50"
-                    : "text-gray-600"
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${activeTab === "calendar"
+                  ? "text-[#2E5674] font-bold bg-blue-50/50"
+                  : "text-gray-600"
+                  }`}
               >
                 <Calendar size={18} />
                 Calendar
@@ -291,46 +298,43 @@ function Dashboard() {
         <div className="flex gap-8 lg:flex-row flex-col flex-grow overflow-hidden relative">
           {/* Left Column: Banner, Transcript, Consultations */}
           <div
-            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
-              activeTab === "dashboard"
-                ? "lg:w-[65%] opacity-100 translate-x-0"
-                : activeTab === "sessions"
+            className={`flex flex-col h-full duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === "dashboard"
+              ? "lg:w-[65%] opacity-100 translate-x-0"
+              : activeTab === "sessions"
                 ? "w-full opacity-100 translate-x-0"
                 : "w-0 opacity-0 -translate-x-[100%] overflow-hidden"
-            }`}
+              }`}
           >
             {/* Fixed Top Section */}
             <div className="shrink-0">
               {/* Start Consultation Banner - Collapses in Sessions mode */}
+              {/* Start Consultation Banner - Collapses in Sessions mode */}
               <div
-                className={`w-full bg-[#2E5674] rounded-3xl flex items-center gap-4 shadow-md transition-all duration-500 ease-in-out hover:shadow-lg cursor-pointer shrink-0 overflow-hidden ${
-                  activeTab === "sessions"
-                    ? "h-0 p-0 mb-0 opacity-0"
-                    : "p-4 mb-4 h-auto opacity-100"
-                }`}
+                className={`w-full bg-gradient-to-r from-[#2E5674] to-[#192E46] rounded-3xl flex items-center gap-4 shadow-lg shadow-[#2E5674]/20 transition-all duration-500 ease-in-out hover:scale-[1.01] hover:shadow-xl hover:shadow-[#2E5674]/30 cursor-pointer shrink-0 overflow-hidden relative z-10 ${activeTab === "sessions"
+                  ? "h-0 p-0 mb-0 opacity-0"
+                  : "p-6 mb-8 h-auto opacity-100"
+                  }`}
                 onClick={handleStartConsultationClick}
               >
-                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm shrink-0">
+                <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner shrink-0 border border-white/20">
                   {!isRecording ? (
-                    <Mic size={28} className="text-[#2E5674]" />
+                    <Mic size={32} className="text-white drop-shadow-md" />
                   ) : (
-                    <div className="w-5 h-5 bg-[#DBC6AE] rounded-full animate-pulse"></div>
+                    <div className="w-6 h-6 bg-[#DBC6AE] rounded-full animate-pulse shadow-[0_0_15px_rgba(219,198,174,0.6)]"></div>
                   )}
                 </div>
                 <div className="flex flex-col text-white whitespace-nowrap">
-                  <h2 className="text-xl [@media(max-width:413px)]:text-[1rem] font-bold">
+                  <h2 className="text-2xl [@media(max-width:413px)]:text-[1rem] font-bold tracking-tight">
                     {isRecording ? "Listening..." : "Start New Consultation"}
                   </h2>
-                  {isRecording && (
-                    <p className="text-white/80 text-xs">
-                      Click to stop and generate SOAP note
-                    </p>
-                  )}
+                  <p className="text-white/70 text-sm font-medium">
+                    {isRecording ? "Click to stop and generate SOAP note" : "Tap here to begin recording"}
+                  </p>
                 </div>
                 {isRecording && (
                   <button
                     onClick={handleCancelConsultation}
-                    className="ml-auto p-2 bg-red-400/20 hover:bg-red-400/40 text-red-100 rounded-full transition-all mr-2"
+                    className="ml-auto p-3 bg-red-500/20 hover:bg-red-500/40 text-red-100 rounded-2xl transition-all mr-2 backdrop-blur-sm border border-red-500/30"
                     title="Cancel Consultation"
                   >
                     <X size={24} />
@@ -340,26 +344,26 @@ function Dashboard() {
 
               {/* Transcript Live View */}
               <div
-                className={`rounded-2xl duration-300 bg-white overflow-hidden shadow-sm shrink-0 ${
-                  !isRecording
-                    ? "h-0 p-0 mt-0 opacity-0 border-0"
-                    : "h-[10rem] p-6 border border-[#2E5674] opacity-100 mb-6"
-                }`}
+                className={`rounded-3xl duration-300 bg-white/40 backdrop-blur-md overflow-hidden shadow-sm shrink-0 border border-white/60 ${!isRecording
+                  ? "h-0 p-0 mt-0 opacity-0 border-0"
+                  : "h-[12rem] p-6 opacity-100 mb-8"
+                  }`}
               >
-                <div className="text-neutral-500 mb-2 font-medium">
+                <div className="text-[#2E5674] mb-3 font-bold flex items-center gap-2">
+                  <Sparkles size={16} />
                   Live Transcription
                 </div>
-                <div className="text-[#192E46]">{transcriptValue}</div>
+                <div className="text-[#192E46] font-medium leading-relaxed opacity-80 h-full overflow-y-auto pr-2 custom-scrollbar">{transcriptValue}</div>
               </div>
 
-              <h2 className="text-xl font-bold text-[#192E46] mb-4 shrink-0">
+              <h2 className="text-2xl font-bold text-[#192E46] mb-6 shrink-0 tracking-tight">
                 Recent Consultations
               </h2>
 
               {/* Search Bar */}
-              <div className="relative mb-6 shrink-0">
+              <div className="relative mb-8 shrink-0 group">
                 <Search
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  className="absolute left-5 top-1/2 transform -translate-y-1/2 text-[#2E5674]/50 group-focus-within:text-[#2E5674] transition-colors"
                   size={20}
                 />
                 <input
@@ -367,7 +371,7 @@ function Dashboard() {
                   placeholder="Search by title..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white rounded-full py-3 pl-12 pr-4 border border-transparent focus:border-[#2E5674] outline-none shadow-sm text-gray-600"
+                  className="w-full bg-white/60 backdrop-blur-sm rounded-2xl py-4 pl-14 pr-6 border border-white/60 focus:border-[#2E5674]/30 focus:bg-white/80 outline-none shadow-sm hover:shadow-md transition-all text-[#192E46] placeholder:text-[#192E46]/30 font-medium"
                 />
               </div>
             </div>
@@ -380,12 +384,12 @@ function Dashboard() {
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase())
                 ).length === 0 && (
-                  <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
-                    {searchQuery
-                      ? "No matching consultations found."
-                      : "No recent consultations found."}
-                  </div>
-                )}
+                    <div className="text-center text-gray-500 py-10 bg-white rounded-2xl">
+                      {searchQuery
+                        ? "No matching consultations found."
+                        : "No recent consultations found."}
+                    </div>
+                  )}
                 {consultations
                   .filter((c) =>
                     (c.title || "")
@@ -395,36 +399,32 @@ function Dashboard() {
                   .map((consultation, index) => (
                     <div
                       key={index}
-                      className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow ${getCardColor(
+                      className={`p-6 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 ${getCardColor(
                         index
-                      )} relative group`}
+                      )} relative group backdrop-blur-sm`}
                     >
-                      <div className="absolute top-4 right-4 z-10">
+                      <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={(e) =>
                             handleDeleteConsultation(consultation._id, e)
                           }
-                          className={`p-1.5 rounded-full hover:bg-black/10 transition-colors ${
-                            index % 3 === 0
-                              ? "text-red-600"
-                              : "text-red-200 hover:text-red-100"
-                          }`}
+                          className="p-2 rounded-full hover:bg-red-50 text-red-300 hover:text-red-500 transition-colors"
                           title="Delete Consultation"
                           disabled={isDeleting}
                         >
                           <Trash2 size={18} />
                         </button>
                       </div>
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between mb-2">
                         <h3
-                          className={`font-semibold text-lg ${getTextColor(
+                          className={`font-bold text-lg ${getTextColor(
                             index
                           )} flex items-center gap-2`}
                         >
-                          {consultation.title || `Title_${consultation.date}`}
+                          {consultation.title || `Session ${consultation.date}`}
                           <Pencil
                             size={14}
-                            className={`cursor-pointer opacity-70 hover:opacity-100`}
+                            className={`cursor-pointer opacity-40 hover:opacity-100 transition-opacity text-[#2E5674]`}
                             onClick={(e) => {
                               e.stopPropagation();
                               setIsEditTitleDialogOpen(true);
@@ -434,27 +434,27 @@ function Dashboard() {
                           />
                         </h3>
                       </div>
-                      <div className={`text-sm mb-4 ${getSubTextColor(index)}`}>
-                        Date: {consultation.date} | Duration:{" "}
-                        {consultation.duration}
+                      <div className={`text-sm mb-5 font-medium flex items-center gap-3 ${getSubTextColor(index)}`}>
+                        <div className="flex items-center gap-1 bg-white/50 px-2 py-1 rounded-lg">
+                          <Calendar size={12} /> {consultation.date}
+                        </div>
+                        <div className="flex items-center gap-1 bg-white/50 px-2 py-1 rounded-lg">
+                          <Clock size={12} /> {consultation.duration}
+                        </div>
                       </div>
                       <div className="flex gap-3">
                         <button
-                          className="bg-white/90 hover:bg-white text-[#192E46] px-5 py-1.5 rounded-full text-sm font-medium transition-colors shadow-sm"
+                          className="flex-1 bg-[#192E46] text-white hover:bg-[#2E5674] px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2"
                           onClick={() => {
                             setIsSoapVisible(true);
                             setSoapShowValue(consultation.soap);
                             setConsultationId(consultation._id);
                           }}
                         >
-                          Get SOAP
+                          <FileText size={16} /> SOAP Note
                         </button>
                         <button
-                          className={`bg-transparent border ${
-                            index % 3 !== 0
-                              ? "border-white/50 text-white hover:bg-white/10"
-                              : "border-[#192E46]/30 text-[#192E46] hover:bg-black/5"
-                          } px-5 py-1.5 rounded-full text-sm font-medium transition-colors`}
+                          className="flex-1 bg-white text-[#192E46] border border-[#192E46]/10 hover:bg-gray-50 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-2"
                           onClick={() => {
                             setIsTranscriptVisible(true);
                             setTranscriptShowValue(consultation.transcription);
@@ -466,7 +466,7 @@ function Dashboard() {
                             setIsAITranscriptVisible(false);
                           }}
                         >
-                          Transcript
+                          <Users size={16} /> Transcript
                         </button>
                       </div>
                     </div>
@@ -477,13 +477,12 @@ function Dashboard() {
 
           {/* Calendar Section (Right Column) */}
           <div
-            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${
-              activeTab === "dashboard"
-                ? "lg:w-[35%] opacity-100 translate-x-0"
-                : activeTab === "calendar"
+            className={`flex flex-col h-full sticky top-0 duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] transition-all ${activeTab === "dashboard"
+              ? "lg:w-[35%] opacity-100 translate-x-0"
+              : activeTab === "calendar"
                 ? "w-full opacity-100 translate-x-0"
                 : "w-0 opacity-0 translate-x-[100%] overflow-hidden"
-            }`}
+              }`}
           >
             <DashboardCalendar
               consultations={consultations}
@@ -510,11 +509,10 @@ function Dashboard() {
             <div className="flex flex-wrap gap-2 items-center justify-between mb-2 pr-12">
               <h2 className="text-2xl font-bold text-[#192E46]">Transcript</h2>
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  isAIEnhancing
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${isAIEnhancing
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                  }`}
                 onClick={async () => {
                   if (isAIEnhancing) return;
                   try {
@@ -592,9 +590,8 @@ function Dashboard() {
             <div className="flex flex-wrap gap-2 items-center justify-between mb-6 pr-12">
               <div className="flex flex-wrap gap-3">
                 <button
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${
-                    isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#2E5674] text-[#2E5674] hover:bg-white/50 transition-all ${isSoapSaving ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   onClick={async () => {
                     if (!isSoapEditable) {
                       soapContentRef.current.focus();
@@ -631,8 +628,8 @@ function Dashboard() {
                   {isSoapEditable
                     ? "Save Edits"
                     : isSoapSaving
-                    ? "Saving..."
-                    : "Edit Mode"}
+                      ? "Saving..."
+                      : "Edit Mode"}
                 </button>
                 <button
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E5674] text-white hover:bg-[#192E46] transition-all"
@@ -666,9 +663,8 @@ function Dashboard() {
             <div className="flex-grow overflow-y-auto bg-white rounded-xl border border-gray-100 shadow-inner">
               <pre
                 id="soap-note-content"
-                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${
-                  isSoapEditable ? "bg-blue-50/50" : ""
-                }`}
+                className={`font-sans text-[#192E46] whitespace-pre-wrap leading-relaxed p-8 outline-none h-full ${isSoapEditable ? "bg-blue-50/50" : ""
+                  }`}
                 contentEditable={isSoapEditable}
                 suppressContentEditableWarning
                 ref={soapContentRef}
@@ -744,9 +740,8 @@ function Dashboard() {
           <button
             type="submit"
             form="edit-title-form"
-            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${
-              isTitleSaving ? "opacity-70 pointer-events-none" : ""
-            }`}
+            className={`px-4 py-2 bg-[#2E5674] text-white font-medium rounded-lg hover:opacity-90 transition-opacity ${isTitleSaving ? "opacity-70 pointer-events-none" : ""
+              }`}
           >
             {isTitleSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -779,9 +774,8 @@ function Dashboard() {
           </button>
           <button
             onClick={confirmDelete}
-            className={`px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors ${
-              isDeleting ? "opacity-70 pointer-events-none" : ""
-            }`}
+            className={`px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors ${isDeleting ? "opacity-70 pointer-events-none" : ""
+              }`}
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </button>
