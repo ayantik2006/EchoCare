@@ -379,7 +379,7 @@ function Dashboard() {
                   {!isRecording ? (
                     <Mic size={32} className="text-white drop-shadow-md" />
                   ) : (
-                    <div className="w-6 h-6 bg-[#DBC6AE] rounded-full animate-pulse shadow-[0_0_15px_rgba(219,198,174,0.6)]"></div>
+                    <div className="w-6 h-6 bg-[#e94641] rounded-full animate-pulse shadow-[0_0_15px_rgba(219,198,174,0.6)]"></div>
                   )}
                 </div>
                 <div className="flex flex-col text-white min-w-0 flex-1">
