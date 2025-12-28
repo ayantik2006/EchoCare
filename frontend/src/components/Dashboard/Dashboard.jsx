@@ -268,8 +268,8 @@ function Dashboard() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6 shrink-0 relative z-20">
-          <h1 className="text-[2rem] font-bold text-[#192E46] flex items-center gap-3">
-            Dashboard
+          <h1 className="text-[2rem] font-bold text-[#192E46] flex items-center gap-3 [@media(max-width:569px)_ans_(min-width:460px)]:text-[1.5rem] [@media(max-width:569px)]:text-[1.1rem]">
+            Welcome Dr. {docName}
           </h1>
           <div className="flex items-center gap-4">
             {/* Mobile Menu Button */}
@@ -279,9 +279,6 @@ function Dashboard() {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#DBC6AE] text-[#192E46] font-bold text-xl">
-              {docName ? docName.charAt(0).toUpperCase() : "?"}
-            </div>
           </div>
 
           {/* Mobile Menu Dropdown */}
