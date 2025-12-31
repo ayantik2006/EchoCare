@@ -136,7 +136,7 @@ function Dashboard() {
   }, []);
 
   const handleCancelConsultation = (e) => {
-    // e.stopPropagation();
+    e.stopPropagation();
     if (isRecording) {
       recognitionRef.current.stop();
       setIsRecording(false);
