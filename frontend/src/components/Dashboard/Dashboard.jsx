@@ -766,7 +766,7 @@ function Dashboard() {
                 </button>
             )}
                 <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E5674] text-white hover:bg-[#192E46] transition-all"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#2E5674] text-white hover:bg-[#192E46] transition-all ${isSoapEditable?"hidden":""}`}
                   onClick={() => {
                     const element =
                       document.getElementById("soap-note-content");
