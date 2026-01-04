@@ -1,8 +1,25 @@
 import Consultation from "../models/Consultation.js";
 import Account from "../models/Account.js";
 import jwt from "jsonwebtoken";
-import axios from "axios";
 import humanizeDuration from "humanize-duration";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-pro",
+  generationConfig: {
+    temperature: 0.2,
+    maxOutputTokens: 1024,
+  },
+});
+
+const modelFlash = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash-exp",
+  generationConfig: {
+    temperature: 0.2,
+    maxOutputTokens: 1024,
+  },
+});
 
 export const getConsultations = async (req, res) => {
   const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
@@ -11,26 +28,33 @@ export const getConsultations = async (req, res) => {
   // Lazy Migration: Sync sharedwith field with actual shared accounts
   for (let i = 0; i < consultationData.length; i++) {
     const consultation = consultationData[i];
-    
+
     // Find all accounts that have this consultation in their sharedWithMe list
     // Note: This relies on the Account model being the source of truth for access
-    const sharedAccounts = await Account.find({ sharedWithMe: consultation._id.toString() });
-    
+    const sharedAccounts = await Account.find({
+      sharedWithMe: consultation._id.toString(),
+    });
+
     // Extract emails
-    const correctSharedWith = sharedAccounts.map(acc => acc.email);
-    
+    const correctSharedWith = sharedAccounts.map((acc) => acc.email);
+
     // Check if update is needed (simple stringify comparison for arrays)
-    const currentSharedWith = Array.isArray(consultation.sharedwith) ? consultation.sharedwith : [];
-    
+    const currentSharedWith = Array.isArray(consultation.sharedwith)
+      ? consultation.sharedwith
+      : [];
+
     // Sort to ensure order doesn't affect comparison
     const sortedCurrent = [...currentSharedWith].sort();
     const sortedCorrect = [...correctSharedWith].sort();
-    
+
     if (JSON.stringify(sortedCurrent) !== JSON.stringify(sortedCorrect)) {
-       console.log(`Migrating sharedwith for consultation ${consultation._id}`);
-       await Consultation.updateOne({ _id: consultation._id }, { sharedwith: correctSharedWith });
-       // Update the local object so the response is correct immediately
-       consultation.sharedwith = correctSharedWith;
+      console.log(`Migrating sharedwith for consultation ${consultation._id}`);
+      await Consultation.updateOne(
+        { _id: consultation._id },
+        { sharedwith: correctSharedWith }
+      );
+      // Update the local object so the response is correct immediately
+      consultation.sharedwith = correctSharedWith;
     }
   }
 
@@ -111,31 +135,9 @@ Assessment:
 Plan:
 - ...
 `;
+    const result = await model.generateContent(prompt);
+    const soap = result.response.text();
 
-    const response = await axios.post(
-      "https://api.perplexity.ai/chat/completions",
-      {
-        model: "sonar",
-        messages: [
-          {
-            role: "system",
-            content: "You are a medical documentation assistant.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.2,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const soap = response.data.choices[0].message.content;
     const date = new Date().toLocaleDateString("en-IN");
     await Consultation.create({
       email: email,
@@ -197,6 +199,7 @@ OUTPUT FORMAT:
 - Plain text only.
 - Each sentence or turn on a new line.
 - No markdown, no bullet points.
+- Give proper line leaves for readability.
 
 This is a readability enhancement only, not a clinical interpretation.
 
@@ -204,30 +207,9 @@ Raw transcript:
 ${transcript}
 `;
   try {
-    const response = await axios.post(
-      "https://api.perplexity.ai/chat/completions",
-      {
-        model: "sonar",
-        messages: [
-          {
-            role: "system",
-            content: "You are a medical documentation assistant.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.2,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const AITranscript = response.data.choices[0].message.content;
+    const result = await modelFlash.generateContent(prompt);
+    const AITranscript = result.response.text();
+
     await Consultation.updateOne(
       { _id: id },
       { AITranscription: AITranscript }
@@ -259,44 +241,51 @@ export const deleteConsultation = async (req, res) => {
   const id = req.body.id;
   await Consultation.deleteOne({ _id: id });
   const consultations = await Consultation.find({ email: email });
-  return res
-    .status(200)
-    .json({
-      msg: "consultation deleted",
-      consultations: [...consultations].reverse(),
-    });
+  return res.status(200).json({
+    msg: "consultation deleted",
+    consultations: [...consultations].reverse(),
+  });
 };
 
-export const share=async(req,res)=>{
+export const share = async (req, res) => {
   const email = jwt.verify(req.cookies.user, process.env.JWT_SECRET).user;
-  const {id,receiverEmail}=req.body;
-  if(receiverEmail===email){
-    return res.status(405).json({msg:"owner and receiver same"});
+  const { id, receiverEmail } = req.body;
+  if (receiverEmail === email) {
+    return res.status(405).json({ msg: "owner and receiver same" });
   }
-  const receiverEmailData=await Account.findOne({email:receiverEmail});
-  if(!receiverEmailData){
-     return res.status(404).json({msg:"receiver email not  found"});
+  const receiverEmailData = await Account.findOne({ email: receiverEmail });
+  if (!receiverEmailData) {
+    return res.status(404).json({ msg: "receiver email not  found" });
   }
-  let sharedWithMe=[...receiverEmailData.sharedWithMe];
-  if(sharedWithMe.includes(id)) {
-    return res.status(409).json({msg:"already shared"});
+  let sharedWithMe = [...receiverEmailData.sharedWithMe];
+  if (sharedWithMe.includes(id)) {
+    return res.status(409).json({ msg: "already shared" });
   }
   sharedWithMe.push(id);
-  await Account.updateOne({email:receiverEmail},{sharedWithMe:sharedWithMe});
+  await Account.updateOne(
+    { email: receiverEmail },
+    { sharedWithMe: sharedWithMe }
+  );
 
-  const userData=await Account.findOne({email:email});
-  let sharedWithOther=[...userData.sharedWithOther];
+  const userData = await Account.findOne({ email: email });
+  let sharedWithOther = [...userData.sharedWithOther];
   sharedWithOther.push(id);
-  await Account.updateOne({email:email},{sharedWithOther:sharedWithOther});
-  
-  let consultationData=await Consultation.findOne({_id:id});
-  const sharedWith=[...consultationData.sharedwith];
+  await Account.updateOne(
+    { email: email },
+    { sharedWithOther: sharedWithOther }
+  );
+
+  let consultationData = await Consultation.findOne({ _id: id });
+  const sharedWith = [...consultationData.sharedwith];
   sharedWith.push(receiverEmail);
-  await Consultation.updateOne({_id:id},{sharedwith:sharedWith});
-  const consultations=await Consultation.find({email:email});
-  
-  return res.status(200).json({msg:"shared sucess", consultations:[...consultations].reverse()});
-}
+  await Consultation.updateOne({ _id: id }, { sharedwith: sharedWith });
+  const consultations = await Consultation.find({ email: email });
+
+  return res.status(200).json({
+    msg: "shared sucess",
+    consultations: [...consultations].reverse(),
+  });
+};
 
 export const copyConsultation = async (req, res) => {
   try {
@@ -317,7 +306,7 @@ export const copyConsultation = async (req, res) => {
       date: date,
       duration: originalConsultation.duration,
       AITranscription: originalConsultation.AITranscription,
-      sharedwith: [], 
+      sharedwith: [],
     });
 
     const consultations = await Consultation.find({ email: email });
